@@ -40,7 +40,8 @@ export function BusinessSettings({ business, brandConfig, onBrandConfigUpdate }:
     primaryColor: brandConfig?.primaryColor || 'oklch(0.45 0.15 250)',
     accentColor: brandConfig?.accentColor || 'oklch(0.68 0.19 35)',
     primaryColorHex: '#4F46E5',
-    accentColorHex: '#E8965A'
+    accentColorHex: '#E8965A',
+    logoUrl: brandConfig?.logoUrl || ''
   });
 
   useEffect(() => {
@@ -49,7 +50,8 @@ export function BusinessSettings({ business, brandConfig, onBrandConfigUpdate }:
         ...prev,
         platformName: brandConfig.platformName,
         primaryColor: brandConfig.primaryColor,
-        accentColor: brandConfig.accentColor
+        accentColor: brandConfig.accentColor,
+        logoUrl: brandConfig.logoUrl || ''
       }));
     }
   }, [brandConfig]);
@@ -63,6 +65,7 @@ export function BusinessSettings({ business, brandConfig, onBrandConfigUpdate }:
       platformName: brandingData.platformName,
       primaryColor: hexToOklch(brandingData.primaryColorHex),
       accentColor: hexToOklch(brandingData.accentColorHex),
+      logoUrl: brandingData.logoUrl,
       businessId: business.id
     };
     
@@ -213,6 +216,22 @@ export function BusinessSettings({ business, brandConfig, onBrandConfigUpdate }:
                 placeholder="Cupones Digitales"
               />
               <p className="text-xs text-muted-foreground">Este nombre aparecerá en la cabecera de la plataforma</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="logo-url">URL del Logo</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="logo-url"
+                  value={brandingData.logoUrl}
+                  onChange={(e) => setBrandingData({ ...brandingData, logoUrl: e.target.value })}
+                  placeholder="https://ejemplo.com/logo.png"
+                />
+                <Button variant="outline" size="icon" className="shrink-0">
+                  <ImageIcon className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">URL de la imagen de tu logo (recomendado: PNG transparente)</p>
             </div>
           </div>
 

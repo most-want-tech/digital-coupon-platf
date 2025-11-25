@@ -9,31 +9,34 @@ import { motion } from 'framer-motion';
 interface CouponCardProps {
   coupon: Coupon;
   business: Business;
-  isSaved: boolean;
-  isRedeemed: boolean;
-  onToggleSave: () => void;
-  onRedeem: () => void;
+  isSaved?: boolean;
+  isRedeemed?: boolean;
+  onToggleSave?: () => void;
+  onRedeem?: () => void;
+  showActions?: boolean;
 }
 
-export function CouponCard({ 
-  coupon, 
-  business, 
-  isSaved, 
-  isRedeemed,
-  onToggleSave, 
-  onRedeem 
+export function CouponCard({
+  coupon,
+  business,
+  isSaved = false,
+  isRedeemed = false,
+  onToggleSave,
+  onRedeem,
+  showActions = true
 }: CouponCardProps) {
   const expiryDate = new Date(coupon.expiryDate);
   const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry > 0;
+  const cardInteractionClass = showActions ? 'cursor-pointer hover:shadow-xl' : 'cursor-default';
 
   return (
     <motion.div
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="overflow-hidden group cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-200">
-        <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+      <Card className={`overflow-hidden group shadow-sm transition-shadow duration-200 ${cardInteractionClass}`}>
+        <div className="relative aspect-3/2 overflow-hidden bg-muted">
           <img 
             src={coupon.image} 
             alt={coupon.title}
@@ -55,21 +58,23 @@ export function CouponCard({
               </Badge>
             )}
           </div>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="absolute top-3 right-3 rounded-full shadow-lg"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSave();
-            }}
-          >
-            <Heart 
-              className="w-4 h-4" 
-              weight={isSaved ? 'fill' : 'regular'}
-              color={isSaved ? '#f59e0b' : 'currentColor'}
-            />
-          </Button>
+          {showActions && onToggleSave && (
+            <Button
+              size="icon"
+              variant="secondary"
+              className="absolute top-3 right-3 rounded-full shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSave();
+              }}
+            >
+              <Heart
+                className="w-4 h-4"
+                weight={isSaved ? 'fill' : 'regular'}
+                color={isSaved ? '#f59e0b' : 'currentColor'}
+              />
+            </Button>
+          )}
           <div className="absolute bottom-3 left-3">
             <Avatar className="w-10 h-10 border-2 border-background shadow-lg">
               <AvatarImage src={business.logo} alt={business.name} />
@@ -97,16 +102,18 @@ export function CouponCard({
                 Vence {expiryDate.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
               </span>
             </div>
-            <Button 
-              size="sm" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onRedeem();
-              }}
-              disabled={isRedeemed}
-            >
-              {isRedeemed ? 'Canjeado' : 'Canjear'}
-            </Button>
+            {showActions && onRedeem && (
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRedeem();
+                }}
+                disabled={isRedeemed}
+              >
+                {isRedeemed ? 'Canjeado' : 'Canjear'}
+              </Button>
+            )}
           </div>
         </div>
       </Card>

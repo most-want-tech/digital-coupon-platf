@@ -64,4 +64,7 @@ export interface BrandConfig {
   accentColor: string;
   logoUrl?: string;
   businessId?: string;
+  tagline?: string;
+  backgroundColor?: string;
+  heroImageUrl?: string;
 }
