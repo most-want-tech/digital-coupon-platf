@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { Button } from '@/components/ui/button';
-import { CategoryFilter } from '@/components/CategoryFilter';
 import { CouponCard } from '@/components/CouponCard';
 import { BusinessDashboard } from '@/components/BusinessDashboard';
 import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
-import { BrandConfig, CategoryType } from '@/lib/types';
+import { BrandConfig } from '@/lib/types';
 import { Tag, Storefront } from '@phosphor-icons/react';
 import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
 
 function App() {
   const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
-  const [activeCategory, setActiveCategory] = useState<CategoryType>('all');
   const [brandConfigs, setBrandConfigs] = useKV<Record<string, BrandConfig>>('brand-configs', {});
 
   const currentBrandConfig = useMemo(() => {
@@ -26,6 +24,15 @@ function App() {
     applyBrandColors(currentBrandConfig);
   }, [currentBrandConfig]);
 
+  const activeBusinessId =
+    currentBrandConfig.businessId || mockBusinesses[0]?.id || '';
+  const displayBusiness = mockBusinesses.find(
+    (business) => business.id === activeBusinessId
+  );
+  const businessCoupons = mockCoupons.filter(
+    (coupon) => coupon.businessId === activeBusinessId
+  );
+
   if (viewMode === 'business') {
     return (
       <BusinessDashboard
@@ -35,10 +42,6 @@ function App() {
       />
     );
   }
-
-  const filteredCoupons = mockCoupons.filter((coupon) =>
-    activeCategory === 'all' ? true : coupon.category === activeCategory
-  );
 
   const backgroundStyle = currentBrandConfig.backgroundColor
     ? { backgroundColor: currentBrandConfig.backgroundColor }
@@ -95,17 +98,17 @@ function App() {
           )}
           <div className="relative z-10 p-10 sm:p-16 bg-linear-to-r from-background/90 via-background/85 to-background/60">
             <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-              {currentBrandConfig.platformName}
+              {displayBusiness?.name || currentBrandConfig.platformName}
             </p>
             <h2 className="mt-4 text-3xl sm:text-4xl font-bold max-w-2xl leading-tight">
-              Tu catálogo de cupones digitales listo para compartir
+              {currentBrandConfig.platformName}
             </h2>
             <p className="mt-4 max-w-2xl text-base text-muted-foreground">
               {tagline}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button size="lg" className="px-6">
-                Ver cupones destacados
+                {currentBrandConfig.primaryButtonLabel || 'Ver cupones destacados'}
               </Button>
               <Button
                 variant="outline"
@@ -113,7 +116,7 @@ function App() {
                 className="px-6"
                 onClick={() => setViewMode('business')}
               >
-                Personalizar experiencia
+                {currentBrandConfig.secondaryButtonLabel || 'Personalizar experiencia'}
               </Button>
             </div>
           </div>
@@ -121,30 +124,27 @@ function App() {
 
         <section className="space-y-6">
           <div>
-            <h3 className="text-2xl font-semibold">Explora cupones</h3>
+            <h3 className="text-2xl font-semibold">
+              Promociones de {displayBusiness?.name || currentBrandConfig.platformName}
+            </h3>
             <p className="text-muted-foreground">
-              Filtra por categoría y descubre promociones listas para compartir.
+              Comparte estas ofertas con tu comunidad y aumenta tus canjes digitales.
             </p>
           </div>
 
-          <CategoryFilter
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-          />
-
-          {filteredCoupons.length === 0 ? (
+          {businessCoupons.length === 0 ? (
             <div className="text-center py-16 border rounded-xl bg-card">
               <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h4 className="text-xl font-semibold mb-2">
-                No hay cupones para esta categoría
+                No hay cupones disponibles por ahora
               </h4>
               <p className="text-muted-foreground">
-                Selecciona otra categoría para ver más promociones disponibles.
+                Agrega promociones desde el panel de personalización para mostrarlas aquí.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredCoupons.map((coupon) => {
+              {businessCoupons.map((coupon) => {
                 const business = mockBusinesses.find(
                   (item) => item.id === coupon.businessId
                 );

@@ -67,4 +67,6 @@ export interface BrandConfig {
   tagline?: string;
   backgroundColor?: string;
   heroImageUrl?: string;
+  primaryButtonLabel?: string;
+  secondaryButtonLabel?: string;
 }

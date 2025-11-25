@@ -33,6 +33,8 @@ type BrandFormState = {
   primaryColorHex: string;
   accentColorHex: string;
   backgroundColorHex: string;
+  primaryButtonLabel: string;
+  secondaryButtonLabel: string;
 };
 
 const fallbackPrimaryHex = oklchToHex(defaultBrandConfig.primaryColor);
@@ -66,7 +68,11 @@ export function BusinessDashboard({
         existingConfig?.accentColor || defaultBrandConfig.accentColor
       ) || fallbackAccentHex,
       backgroundColorHex:
-        existingConfig?.backgroundColor || fallbackBackgroundHex
+        existingConfig?.backgroundColor || fallbackBackgroundHex,
+      primaryButtonLabel:
+        existingConfig?.primaryButtonLabel || defaultBrandConfig.primaryButtonLabel || 'Ver cupones',
+      secondaryButtonLabel:
+        existingConfig?.secondaryButtonLabel || defaultBrandConfig.secondaryButtonLabel || 'Compartir'
     };
   };
 
@@ -115,7 +121,9 @@ export function BusinessDashboard({
       logoUrl: formState.logoUrl,
       tagline: formState.tagline,
       heroImageUrl: formState.heroImageUrl,
-      businessId: selectedBusinessId
+      businessId: selectedBusinessId,
+      primaryButtonLabel: formState.primaryButtonLabel,
+      secondaryButtonLabel: formState.secondaryButtonLabel
     };
 
     onBrandConfigUpdate((prev = {}) => ({
@@ -229,6 +237,26 @@ export function BusinessDashboard({
                     value={formState.heroImageUrl}
                     onChange={(event) => handleFieldChange('heroImageUrl', event.target.value)}
                     placeholder="https://tu-marca.com/encabezado.jpg"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="primary-button-label">Botón principal</Label>
+                  <Input
+                    id="primary-button-label"
+                    value={formState.primaryButtonLabel}
+                    onChange={(event) => handleFieldChange('primaryButtonLabel', event.target.value)}
+                    placeholder="Ver cupones destacados"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="secondary-button-label">Botón secundario</Label>
+                  <Input
+                    id="secondary-button-label"
+                    value={formState.secondaryButtonLabel}
+                    onChange={(event) => handleFieldChange('secondaryButtonLabel', event.target.value)}
+                    placeholder="Personalizar experiencia"
                   />
                 </div>
               </div>
@@ -345,10 +373,10 @@ export function BusinessDashboard({
                   </p>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Button size="sm" className="px-5">
-                      Ver cupones
+                      {formState.primaryButtonLabel || 'Ver cupones'}
                     </Button>
                     <Button variant="outline" size="sm" className="px-5">
-                      Compartir catálogo
+                      {formState.secondaryButtonLabel || 'Compartir catálogo'}
                     </Button>
                   </div>
                 </div>
