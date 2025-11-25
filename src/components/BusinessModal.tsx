@@ -15,10 +15,10 @@ interface BusinessModalProps {
 }
 
 const categoryLabels = {
-  food: 'Food & Dining',
-  retail: 'Retail',
-  services: 'Services',
-  entertainment: 'Entertainment'
+  food: 'Comida y Restaurantes',
+  retail: 'Tiendas',
+  services: 'Servicios',
+  entertainment: 'Entretenimiento'
 };
 
 export function BusinessModal({ business, coupons, open, onClose, onCouponClick }: BusinessModalProps) {
@@ -65,21 +65,21 @@ export function BusinessModal({ business, coupons, open, onClose, onCouponClick 
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-sm font-medium">Dirección</p>
                   <p className="text-sm text-muted-foreground">{business.address}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Hours</p>
+                  <p className="text-sm font-medium">Horario</p>
                   <p className="text-sm text-muted-foreground">{business.hours}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm font-medium">Teléfono</p>
                   <p className="text-sm text-muted-foreground">{business.phone}</p>
                 </div>
               </div>
@@ -90,7 +90,7 @@ export function BusinessModal({ business, coupons, open, onClose, onCouponClick 
             <div>
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                 <Tag className="w-5 h-5" />
-                Available Coupons ({coupons.length})
+                Cupones Disponibles ({coupons.length})
               </h3>
               <div className="grid gap-3">
                 {coupons.map((coupon) => (
@@ -110,7 +110,7 @@ export function BusinessModal({ business, coupons, open, onClose, onCouponClick 
                           {coupon.discount}
                         </Badge>
                         {coupon.isNew && (
-                          <Badge variant="secondary" className="shrink-0">NEW</Badge>
+                          <Badge variant="secondary" className="shrink-0">NUEVO</Badge>
                         )}
                       </div>
                       <h4 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-colors">

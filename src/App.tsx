@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,10 @@ import { RedemptionModal } from '@/components/RedemptionModal';
 import { BusinessModal } from '@/components/BusinessModal';
 import { BusinessDashboard } from '@/components/BusinessDashboard';
 import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
-import { CategoryType, Coupon, RedemptionHistory } from '@/lib/types';
+import { CategoryType, Coupon, RedemptionHistory, BrandConfig } from '@/lib/types';
 import { Tag, Heart, Storefront } from '@phosphor-icons/react';
 import { Toaster, toast } from 'sonner';
+import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
 
 function App() {
   const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
@@ -18,13 +19,28 @@ function App() {
   const [activeTab, setActiveTab] = useState('all');
   const [savedCoupons, setSavedCoupons] = useKV<string[]>('saved-coupons', []);
   const [redemptionHistory, setRedemptionHistory] = useKV<RedemptionHistory[]>('redemption-history', []);
+  const [brandConfigs, setBrandConfigs] = useKV<Record<string, BrandConfig>>('brand-configs', {});
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [redemptionModalOpen, setRedemptionModalOpen] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [businessModalOpen, setBusinessModalOpen] = useState(false);
 
+  const currentBrandConfig = brandConfigs && Object.keys(brandConfigs).length > 0 
+    ? Object.values(brandConfigs)[0] 
+    : defaultBrandConfig;
+
+  useEffect(() => {
+    applyBrandColors(currentBrandConfig);
+  }, [currentBrandConfig]);
+
   if (viewMode === 'business') {
-    return <BusinessDashboard onBackToCustomer={() => setViewMode('customer')} />;
+    return (
+      <BusinessDashboard 
+        onBackToCustomer={() => setViewMode('customer')}
+        brandConfigs={brandConfigs || {}}
+        onBrandConfigUpdate={setBrandConfigs}
+      />
+    );
   }
 
   const savedCouponsArray = savedCoupons || [];
@@ -42,10 +58,10 @@ function App() {
     setSavedCoupons((current) => {
       const currentArray = current || [];
       if (currentArray.includes(couponId)) {
-        toast.success('Removed from saved coupons');
+        toast.success('Eliminado de cupones guardados');
         return currentArray.filter(id => id !== couponId);
       } else {
-        toast.success('Saved for later!');
+        toast.success('¡Guardado para después!');
         return [...currentArray, couponId];
       }
     });
@@ -65,7 +81,7 @@ function App() {
           { couponId: selectedCoupon.id, redeemedAt: new Date().toISOString() }
         ];
       });
-      toast.success('Coupon redeemed successfully!');
+      toast.success('¡Cupón canjeado exitosamente!');
     }
   };
 
@@ -102,8 +118,8 @@ function App() {
                 <Tag className="w-6 h-6 text-primary-foreground" weight="fill" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">CouponHub</h1>
-                <p className="text-xs text-muted-foreground">Digital Savings Platform</p>
+                <h1 className="text-2xl font-bold tracking-tight">{currentBrandConfig.platformName}</h1>
+                <p className="text-xs text-muted-foreground">Plataforma de Descuentos Digitales</p>
               </div>
             </div>
             <Button
@@ -113,7 +129,7 @@ function App() {
               onClick={() => setViewMode('business')}
             >
               <Storefront className="w-4 h-4" />
-              Business Login
+              Acceso Negocio
             </Button>
           </div>
         </div>
@@ -121,9 +137,9 @@ function App() {
 
       <main className="container mx-auto px-6 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-semibold mb-2">Discover Local Deals</h2>
+          <h2 className="text-3xl font-semibold mb-2">Descubre Ofertas Locales</h2>
           <p className="text-muted-foreground">
-            Browse exclusive offers from your favorite local businesses
+            Explora ofertas exclusivas de tus negocios locales favoritos
           </p>
         </div>
 
@@ -131,14 +147,14 @@ function App() {
           <TabsList>
             <TabsTrigger value="all" className="gap-2">
               <Tag className="w-4 h-4" />
-              All Coupons
+              Todos los Cupones
               <span className="ml-1 px-2 py-0.5 bg-muted rounded-full text-xs font-medium">
                 {mockCoupons.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="saved" className="gap-2">
               <Heart className="w-4 h-4" />
-              Saved
+              Guardados
               <span className="ml-1 px-2 py-0.5 bg-muted rounded-full text-xs font-medium">
                 {savedCouponsArray.length}
               </span>
@@ -156,9 +172,9 @@ function App() {
             {filteredCoupons.length === 0 ? (
               <div className="text-center py-16">
                 <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No coupons found</h3>
+                <h3 className="text-xl font-semibold mb-2">No se encontraron cupones</h3>
                 <p className="text-muted-foreground">
-                  Try selecting a different category
+                  Intenta seleccionar una categoría diferente
                 </p>
               </div>
             ) : (
@@ -191,20 +207,20 @@ function App() {
             {savedCouponsArray.length === 0 ? (
               <div className="text-center py-16">
                 <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No saved coupons</h3>
+                <h3 className="text-xl font-semibold mb-2">No hay cupones guardados</h3>
                 <p className="text-muted-foreground mb-4">
-                  Save your favorite deals to access them quickly later
+                  Guarda tus ofertas favoritas para acceder a ellas rápidamente después
                 </p>
                 <Button onClick={() => setActiveTab('all')}>
-                  Browse Coupons
+                  Explorar Cupones
                 </Button>
               </div>
             ) : filteredCoupons.length === 0 ? (
               <div className="text-center py-16">
                 <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No coupons found</h3>
+                <h3 className="text-xl font-semibold mb-2">No se encontraron cupones</h3>
                 <p className="text-muted-foreground">
-                  No saved coupons match the selected category
+                  Ningún cupón guardado coincide con la categoría seleccionada
                 </p>
               </div>
             ) : (
@@ -239,10 +255,10 @@ function App() {
         <div className="container mx-auto px-6 py-8">
           <div className="text-center text-sm text-muted-foreground">
             <p className="mb-2">
-              <strong className="text-foreground">CouponHub Demo Platform</strong> - White-label digital coupon solution
+              <strong className="text-foreground">Plataforma de Cupones Digitales</strong> - Solución white-label de cupones digitales
             </p>
             <p>
-              Ready to bring modern digital coupons to your local business community? This platform can be fully customized with your branding.
+              ¿Listo para traer cupones digitales modernos a tu comunidad de negocios locales? Esta plataforma puede ser completamente personalizada con tu marca.
             </p>
           </div>
         </div>

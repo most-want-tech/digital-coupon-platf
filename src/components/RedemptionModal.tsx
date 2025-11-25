@@ -97,8 +97,8 @@ export function RedemptionModal({ coupon, business, open, onClose, onConfirmRede
                   >
                     <Check className="w-12 h-12 text-accent-foreground" weight="bold" />
                   </motion.div>
-                  <h3 className="text-xl font-semibold">Redeemed!</h3>
-                  <p className="text-muted-foreground text-sm">Enjoy your discount</p>
+                  <h3 className="text-xl font-semibold">¡Canjeado!</h3>
+                  <p className="text-muted-foreground text-sm">Disfruta tu descuento</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -106,19 +106,19 @@ export function RedemptionModal({ coupon, business, open, onClose, onConfirmRede
 
           <div>
             <Badge className="bg-accent text-accent-foreground mb-3 text-sm px-3 py-1">
-              {coupon.discount} DISCOUNT
+              {coupon.discount} DESCUENTO
             </Badge>
             <p className="text-sm text-foreground mb-4">
               {coupon.description}
             </p>
             <Separator className="my-4" />
             <div>
-              <h4 className="font-semibold text-sm mb-2">Terms & Conditions</h4>
+              <h4 className="font-semibold text-sm mb-2">Términos y Condiciones</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {coupon.terms}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                Expires: {new Date(coupon.expiryDate).toLocaleDateString('en-US', { 
+                Vence: {new Date(coupon.expiryDate).toLocaleDateString('es-ES', { 
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
@@ -131,11 +131,11 @@ export function RedemptionModal({ coupon, business, open, onClose, onConfirmRede
             <div className="flex gap-3">
               <Button variant="outline" onClick={onClose} className="flex-1">
                 <X className="w-4 h-4 mr-2" />
-                Cancel
+                Cancelar
               </Button>
               <Button onClick={handleRedeem} className="flex-1 bg-accent hover:bg-accent/90">
                 <Check className="w-4 h-4 mr-2" />
-                Mark as Used
+                Marcar como Usado
               </Button>
             </div>
           )}

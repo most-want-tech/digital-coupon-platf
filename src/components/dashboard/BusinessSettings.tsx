@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Business, CategoryType } from '@/lib/types';
+import { Business, CategoryType, BrandConfig } from '@/lib/types';
 import { 
   FloppyDisk,
   Image as ImageIcon,
@@ -14,12 +14,16 @@ import {
   Globe
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { applyBrandColors } from '@/lib/brand-config';
+import { hexToOklch } from '@/lib/color-utils';
 
 interface BusinessSettingsProps {
   business: Business;
+  brandConfig?: BrandConfig;
+  onBrandConfigUpdate: (config: BrandConfig) => void;
 }
 
-export function BusinessSettings({ business }: BusinessSettingsProps) {
+export function BusinessSettings({ business, brandConfig, onBrandConfigUpdate }: BusinessSettingsProps) {
   const [formData, setFormData] = useState({
     name: business.name,
     category: business.category,
@@ -32,37 +36,57 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
   });
 
   const [brandingData, setBrandingData] = useState({
-    primaryColor: '#4F46E5',
-    secondaryColor: '#EC4899',
-    accentColor: '#F59E0B',
-    logoUrl: business.logo,
-    coverUrl: business.coverImage
+    platformName: brandConfig?.platformName || 'Cupones Digitales',
+    primaryColor: brandConfig?.primaryColor || 'oklch(0.45 0.15 250)',
+    accentColor: brandConfig?.accentColor || 'oklch(0.68 0.19 35)',
+    primaryColorHex: '#4F46E5',
+    accentColorHex: '#E8965A'
   });
 
+  useEffect(() => {
+    if (brandConfig) {
+      setBrandingData(prev => ({
+        ...prev,
+        platformName: brandConfig.platformName,
+        primaryColor: brandConfig.primaryColor,
+        accentColor: brandConfig.accentColor
+      }));
+    }
+  }, [brandConfig]);
+
   const handleSaveProfile = () => {
-    toast.success('Business profile updated successfully!');
+    toast.success('¡Perfil de negocio actualizado exitosamente!');
   };
 
   const handleSaveBranding = () => {
-    toast.success('Branding settings updated successfully!');
+    const newConfig: BrandConfig = {
+      platformName: brandingData.platformName,
+      primaryColor: hexToOklch(brandingData.primaryColorHex),
+      accentColor: hexToOklch(brandingData.accentColorHex),
+      businessId: business.id
+    };
+    
+    onBrandConfigUpdate(newConfig);
+    applyBrandColors(newConfig);
+    toast.success('¡Configuración de marca actualizada exitosamente!');
   };
 
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h2 className="text-2xl font-bold mb-1">Business Settings</h2>
-        <p className="text-muted-foreground">Manage your business profile and branding</p>
+        <h2 className="text-2xl font-bold mb-1">Configuración del Negocio</h2>
+        <p className="text-muted-foreground">Gestiona el perfil y la marca de tu negocio</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Business Profile</CardTitle>
-          <CardDescription>Update your business information visible to customers</CardDescription>
+          <CardTitle>Perfil del Negocio</CardTitle>
+          <CardDescription>Actualiza la información de tu negocio visible para los clientes</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="business-name">Business Name *</Label>
+              <Label htmlFor="business-name">Nombre del Negocio *</Label>
               <Input
                 id="business-name"
                 value={formData.name}
@@ -71,7 +95,7 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
+              <Label htmlFor="category">Categoría *</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value as Exclude<CategoryType, 'all'> })}
@@ -80,41 +104,41 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="food">Food & Dining</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
-                  <SelectItem value="services">Services</SelectItem>
-                  <SelectItem value="entertainment">Entertainment</SelectItem>
+                  <SelectItem value="food">Comida y Restaurantes</SelectItem>
+                  <SelectItem value="retail">Tiendas</SelectItem>
+                  <SelectItem value="services">Servicios</SelectItem>
+                  <SelectItem value="entertainment">Entretenimiento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Descripción</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              placeholder="Tell customers about your business"
+              placeholder="Cuéntale a los clientes sobre tu negocio"
             />
           </div>
 
           <Separator />
 
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Dirección</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="123 Main Street, City, State"
+              placeholder="Calle Principal 123, Ciudad, Estado"
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -131,30 +155,30 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="contact@business.com"
+                placeholder="contacto@negocio.com"
               />
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="hours">Business Hours</Label>
+              <Label htmlFor="hours">Horario</Label>
               <Input
                 id="hours"
                 value={formData.hours}
                 onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                placeholder="Mon-Fri: 9am-6pm"
+                placeholder="Lun-Vie: 9am-6pm"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="website">Sitio Web</Label>
               <Input
                 id="website"
                 type="url"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                placeholder="https://www.yourbusiness.com"
+                placeholder="https://www.tunegocio.com"
               />
             </div>
           </div>
@@ -162,7 +186,7 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
           <div className="flex justify-end pt-4">
             <Button onClick={handleSaveProfile} className="gap-2">
               <FloppyDisk className="w-4 h-4" />
-              Save Changes
+              Guardar Cambios
             </Button>
           </div>
         </CardContent>
@@ -172,118 +196,67 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="w-5 h-5" />
-            White-Label Branding
+            Marca White-Label
           </CardTitle>
           <CardDescription>
-            Customize the platform appearance with your brand colors and images
+            Personaliza la apariencia de la plataforma con los colores e imágenes de tu marca
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="primary-color">Primary Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="primary-color"
-                  type="color"
-                  value={brandingData.primaryColor}
-                  onChange={(e) => setBrandingData({ ...brandingData, primaryColor: e.target.value })}
-                  className="w-16 h-10 cursor-pointer"
-                />
-                <Input
-                  value={brandingData.primaryColor}
-                  onChange={(e) => setBrandingData({ ...brandingData, primaryColor: e.target.value })}
-                  placeholder="#4F46E5"
-                  className="flex-1"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Main brand color for buttons and highlights</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="secondary-color">Secondary Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="secondary-color"
-                  type="color"
-                  value={brandingData.secondaryColor}
-                  onChange={(e) => setBrandingData({ ...brandingData, secondaryColor: e.target.value })}
-                  className="w-16 h-10 cursor-pointer"
-                />
-                <Input
-                  value={brandingData.secondaryColor}
-                  onChange={(e) => setBrandingData({ ...brandingData, secondaryColor: e.target.value })}
-                  placeholder="#EC4899"
-                  className="flex-1"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Supporting color for UI elements</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="accent-color">Accent Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="accent-color"
-                  type="color"
-                  value={brandingData.accentColor}
-                  onChange={(e) => setBrandingData({ ...brandingData, accentColor: e.target.value })}
-                  className="w-16 h-10 cursor-pointer"
-                />
-                <Input
-                  value={brandingData.accentColor}
-                  onChange={(e) => setBrandingData({ ...brandingData, accentColor: e.target.value })}
-                  placeholder="#F59E0B"
-                  className="flex-1"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Highlight color for deals and CTAs</p>
+              <Label htmlFor="platform-name">Nombre de la Plataforma</Label>
+              <Input
+                id="platform-name"
+                value={brandingData.platformName}
+                onChange={(e) => setBrandingData({ ...brandingData, platformName: e.target.value })}
+                placeholder="Cupones Digitales"
+              />
+              <p className="text-xs text-muted-foreground">Este nombre aparecerá en la cabecera de la plataforma</p>
             </div>
           </div>
 
           <Separator />
 
-          <div className="space-y-4">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="logo-url" className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" />
-                Logo URL
-              </Label>
-              <Input
-                id="logo-url"
-                value={brandingData.logoUrl}
-                onChange={(e) => setBrandingData({ ...brandingData, logoUrl: e.target.value })}
-                placeholder="https://your-logo-url.com/logo.png"
-              />
-              <div className="flex items-center gap-4 pt-2">
-                <img 
-                  src={brandingData.logoUrl} 
-                  alt="Logo preview"
-                  className="w-16 h-16 rounded-lg object-cover border"
+              <Label htmlFor="primary-color">Color Primario</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="primary-color"
+                  type="color"
+                  value={brandingData.primaryColorHex}
+                  onChange={(e) => setBrandingData({ ...brandingData, primaryColorHex: e.target.value })}
+                  className="w-16 h-10 cursor-pointer"
                 />
-                <p className="text-xs text-muted-foreground">Logo preview (200x200px recommended)</p>
+                <Input
+                  value={brandingData.primaryColorHex}
+                  onChange={(e) => setBrandingData({ ...brandingData, primaryColorHex: e.target.value })}
+                  placeholder="#4F46E5"
+                  className="flex-1"
+                />
               </div>
+              <p className="text-xs text-muted-foreground">Color principal de marca para botones y destacados</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cover-url" className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" />
-                Cover Image URL
-              </Label>
-              <Input
-                id="cover-url"
-                value={brandingData.coverUrl}
-                onChange={(e) => setBrandingData({ ...brandingData, coverUrl: e.target.value })}
-                placeholder="https://your-cover-url.com/cover.jpg"
-              />
-              <div className="pt-2">
-                <img 
-                  src={brandingData.coverUrl} 
-                  alt="Cover preview"
-                  className="w-full h-32 rounded-lg object-cover border"
+              <Label htmlFor="accent-color">Color de Acento</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="accent-color"
+                  type="color"
+                  value={brandingData.accentColorHex}
+                  onChange={(e) => setBrandingData({ ...brandingData, accentColorHex: e.target.value })}
+                  className="w-16 h-10 cursor-pointer"
                 />
-                <p className="text-xs text-muted-foreground mt-2">Cover image preview (1200x400px recommended)</p>
+                <Input
+                  value={brandingData.accentColorHex}
+                  onChange={(e) => setBrandingData({ ...brandingData, accentColorHex: e.target.value })}
+                  placeholder="#E8965A"
+                  className="flex-1"
+                />
               </div>
+              <p className="text-xs text-muted-foreground">Color de resaltado para ofertas y CTAs</p>
             </div>
           </div>
 
@@ -293,11 +266,11 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
             <div className="flex items-start gap-3">
               <Globe className="w-5 h-5 text-primary mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-semibold mb-1">White-Label Ready</h4>
+                <h4 className="font-semibold mb-1">Plataforma White-Label</h4>
                 <p className="text-sm text-muted-foreground">
-                  These customizations will be applied across the entire customer-facing platform. 
-                  Your branding will replace the default CouponHub theme, creating a fully branded 
-                  experience for your customers.
+                  Estas personalizaciones se aplicarán en toda la plataforma de cara al cliente. 
+                  Tu marca reemplazará el tema por defecto, creando una experiencia completamente 
+                  personalizada para tus clientes.
                 </p>
               </div>
             </div>
@@ -306,7 +279,7 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
           <div className="flex justify-end pt-4">
             <Button onClick={handleSaveBranding} className="gap-2">
               <FloppyDisk className="w-4 h-4" />
-              Save Branding
+              Guardar Marca
             </Button>
           </div>
         </CardContent>
@@ -314,29 +287,29 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>API Integration</CardTitle>
-          <CardDescription>Connect your systems to CouponHub</CardDescription>
+          <CardTitle>Integración API</CardTitle>
+          <CardDescription>Conecta tus sistemas a la plataforma</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-muted/50 border rounded-lg p-4">
             <p className="text-sm mb-4">
-              Use the CouponHub API to integrate with your existing systems. Manage coupons, 
-              track redemptions, and sync customer data programmatically.
+              Usa la API para integrar con tus sistemas existentes. Gestiona cupones, 
+              rastrea canjes y sincroniza datos de clientes programáticamente.
             </p>
             <div className="space-y-3">
               <div>
-                <Label className="text-xs text-muted-foreground">API Endpoint</Label>
+                <Label className="text-xs text-muted-foreground">Endpoint API</Label>
                 <div className="flex gap-2 mt-1">
                   <Input 
-                    value="https://api.couponhub.io/v1"
+                    value="https://api.cuponesdigitales.io/v1"
                     readOnly
                     className="font-mono text-sm"
                   />
-                  <Button variant="outline" size="sm">Copy</Button>
+                  <Button variant="outline" size="sm">Copiar</Button>
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">API Key</Label>
+                <Label className="text-xs text-muted-foreground">Clave API</Label>
                 <div className="flex gap-2 mt-1">
                   <Input 
                     value="sk_live_••••••••••••••••••••"
@@ -344,14 +317,14 @@ export function BusinessSettings({ business }: BusinessSettingsProps) {
                     type="password"
                     className="font-mono text-sm"
                   />
-                  <Button variant="outline" size="sm">Reveal</Button>
+                  <Button variant="outline" size="sm">Mostrar</Button>
                 </div>
               </div>
             </div>
           </div>
           <div className="flex justify-between items-center pt-2">
-            <Button variant="outline">View API Documentation</Button>
-            <Button variant="outline">Generate New Key</Button>
+            <Button variant="outline">Ver Documentación API</Button>
+            <Button variant="outline">Generar Nueva Clave</Button>
           </div>
         </CardContent>
       </Card>

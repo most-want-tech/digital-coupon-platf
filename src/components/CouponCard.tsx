@@ -46,12 +46,12 @@ export function CouponCard({
             </Badge>
             {coupon.isNew && (
               <Badge variant="secondary" className="shadow-lg font-semibold">
-                NEW
+                NUEVO
               </Badge>
             )}
             {isRedeemed && (
               <Badge variant="outline" className="bg-background/90 shadow-lg font-semibold">
-                USED
+                USADO
               </Badge>
             )}
           </div>
@@ -94,7 +94,7 @@ export function CouponCard({
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="w-3.5 h-3.5" />
               <span className={isExpiringSoon ? 'text-accent font-medium' : ''}>
-                Expires {expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                Vence {expiryDate.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
               </span>
             </div>
             <Button 
@@ -105,7 +105,7 @@ export function CouponCard({
               }}
               disabled={isRedeemed}
             >
-              {isRedeemed ? 'Redeemed' : 'Redeem Now'}
+              {isRedeemed ? 'Canjeado' : 'Canjear'}
             </Button>
           </div>
         </div>

@@ -10,7 +10,7 @@ import { BusinessSettings } from './dashboard/BusinessSettings';
 import { Analytics } from './dashboard/Analytics';
 import { DemoWelcome } from './dashboard/DemoWelcome';
 import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
-import { Business, Coupon, RedemptionHistory } from '@/lib/types';
+import { Business, Coupon, RedemptionHistory, BrandConfig } from '@/lib/types';
 import { 
   ChartBar, 
   Tag, 
@@ -23,9 +23,11 @@ import { Toaster } from 'sonner';
 
 interface BusinessDashboardProps {
   onBackToCustomer: () => void;
+  brandConfigs: Record<string, BrandConfig>;
+  onBrandConfigUpdate: (configs: Record<string, BrandConfig> | ((prev?: Record<string, BrandConfig>) => Record<string, BrandConfig>)) => void;
 }
 
-export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) {
+export function BusinessDashboard({ onBackToCustomer, brandConfigs, onBrandConfigUpdate }: BusinessDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>(mockBusinesses[0].id);
   const [redemptionHistory] = useKV<RedemptionHistory[]>('redemption-history', []);
@@ -51,8 +53,8 @@ export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) 
                 <Storefront className="w-6 h-6 text-primary-foreground" weight="fill" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Business Dashboard</h1>
-                <p className="text-xs text-muted-foreground">Manage your digital coupons</p>
+                <h1 className="text-xl font-bold tracking-tight">Panel de Negocio</h1>
+                <p className="text-xs text-muted-foreground">Gestiona tus cupones digitales</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -63,7 +65,7 @@ export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) 
                 onClick={onBackToCustomer}
               >
                 <House className="w-4 h-4" />
-                Customer View
+                Vista Cliente
               </Button>
               <Button
                 variant="outline"
@@ -71,7 +73,7 @@ export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) 
                 className="gap-2"
               >
                 <SignOut className="w-4 h-4" />
-                Sign Out
+                Cerrar Sesión
               </Button>
             </div>
           </div>
@@ -96,7 +98,7 @@ export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) 
                 </div>
                 <Badge variant="secondary" className="gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  Active
+                  Activo
                 </Badge>
               </div>
             </CardHeader>
@@ -107,22 +109,22 @@ export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) 
           <TabsList className="mb-6">
             <TabsTrigger value="overview" className="gap-2">
               <House className="w-4 h-4" />
-              Overview
+              Resumen
             </TabsTrigger>
             <TabsTrigger value="coupons" className="gap-2">
               <Tag className="w-4 h-4" />
-              Coupons
+              Cupones
               <Badge variant="secondary" className="ml-1">
                 {businessCoupons.length}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <ChartBar className="w-4 h-4" />
-              Analytics
+              Analíticas
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Gear className="w-4 h-4" />
-              Settings
+              Configuración
             </TabsTrigger>
           </TabsList>
 
@@ -158,6 +160,13 @@ export function BusinessDashboard({ onBackToCustomer }: BusinessDashboardProps) 
           <TabsContent value="settings">
             <BusinessSettings 
               business={selectedBusiness!}
+              brandConfig={brandConfigs[selectedBusinessId]}
+              onBrandConfigUpdate={(config) => {
+                onBrandConfigUpdate((prev) => ({
+                  ...prev,
+                  [selectedBusinessId]: config
+                }));
+              }}
             />
           </TabsContent>
         </Tabs>

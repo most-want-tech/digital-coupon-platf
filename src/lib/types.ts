@@ -57,3 +57,11 @@ export interface BusinessUser {
   email: string;
   role: 'owner' | 'admin' | 'staff';
 }
+
+export interface BrandConfig {
+  platformName: string;
+  primaryColor: string;
+  accentColor: string;
+  logoUrl?: string;
+  businessId?: string;
+}

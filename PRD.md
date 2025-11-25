@@ -1,11 +1,11 @@
-# Planning Guide
+# Guía de Planificación
 
-A white-label digital coupon book platform that enables local businesses to offer modern, mobile-friendly coupons to customers, replacing traditional paper coupon books with an elegant digital experience.
+Una plataforma digital de cupones white-label que permite a negocios locales ofrecer cupones modernos y móviles a sus clientes, reemplazando los cupones tradicionales de papel con una experiencia digital elegante y completamente personalizable con los colores y marca de cada negocio.
 
-**Experience Qualities**:
-1. **Professional** - The platform must inspire confidence in business owners that this is a legitimate, high-quality SaaS solution they can trust with their brand.
-2. **Accessible** - Customers should instantly understand how to browse and redeem coupons without instruction, with clear visual hierarchy guiding them through the experience.
-3. **Customizable** - The white-label nature should be immediately apparent, demonstrating how easily it adapts to any business's brand identity.
+**Cualidades de Experiencia**:
+1. **Profesional** - La plataforma debe inspirar confianza en los dueños de negocios de que esta es una solución SaaS legítima y de alta calidad en la que pueden confiar con su marca.
+2. **Accesible** - Los clientes deben entender instantáneamente cómo navegar y canjear cupones sin instrucciones, con una jerarquía visual clara que los guíe a través de la experiencia.
+3. **Personalizable** - La naturaleza white-label debe ser inmediatamente aparente, demostrando qué tan fácilmente se adapta a la identidad de marca de cualquier negocio, incluyendo paleta de colores, nombre de marca, y estilo visual.
 
 **Complexity Level**: Light Application (multiple features with basic state)
   - The demo showcases core coupon browsing, filtering, and redemption flows with persistent favorites and redemption tracking. Now includes a comprehensive business dashboard for managing coupons, viewing analytics, and customizing branding, but doesn't require user accounts or complex backend logic at this stage.

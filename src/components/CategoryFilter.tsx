@@ -8,11 +8,11 @@ interface CategoryFilterProps {
 }
 
 const categories = [
-  { id: 'all' as const, label: 'All Deals', icon: Storefront },
-  { id: 'food' as const, label: 'Food & Dining', icon: ForkKnife },
-  { id: 'retail' as const, label: 'Retail', icon: ShoppingBag },
-  { id: 'services' as const, label: 'Services', icon: Briefcase },
-  { id: 'entertainment' as const, label: 'Entertainment', icon: FilmSlate }
+  { id: 'all' as const, label: 'Todas las Ofertas', icon: Storefront },
+  { id: 'food' as const, label: 'Comida y Restaurantes', icon: ForkKnife },
+  { id: 'retail' as const, label: 'Tiendas', icon: ShoppingBag },
+  { id: 'services' as const, label: 'Servicios', icon: Briefcase },
+  { id: 'entertainment' as const, label: 'Entretenimiento', icon: FilmSlate }
 ];
 
 export function CategoryFilter({ activeCategory, onCategoryChange }: CategoryFilterProps) {
