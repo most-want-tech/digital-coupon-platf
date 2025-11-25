@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { Button } from '@/components/ui/button';
 import { CouponCard } from '@/components/CouponCard';
-import { BusinessDashboard } from '@/components/BusinessDashboard';
+import { AdminDashboard } from '@/components/AdminDashboard';
 import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
 import { BrandConfig } from '@/lib/types';
 import { Tag, Storefront } from '@phosphor-icons/react';
@@ -35,7 +35,7 @@ function App() {
 
   if (viewMode === 'business') {
     return (
-      <BusinessDashboard
+      <AdminDashboard
         onBackToCustomer={() => setViewMode('customer')}
         brandConfigs={brandConfigs || {}}
         onBrandConfigUpdate={setBrandConfigs}
@@ -82,7 +82,7 @@ function App() {
             onClick={() => setViewMode('business')}
           >
             <Storefront className="w-4 h-4" />
-            Configurar marca
+            Business Dashboard
           </Button>
         </div>
       </header>
