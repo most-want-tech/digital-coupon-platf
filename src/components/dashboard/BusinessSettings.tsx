@@ -77,8 +77,8 @@ export function BusinessSettings({ business, brandConfig, onBrandConfigUpdate }:
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h2 className="text-2xl font-bold mb-1">Configuración del Negocio</h2>
-        <p className="text-muted-foreground">Gestiona el perfil y la marca de tu negocio</p>
+        <h2 className="text-3xl font-bold tracking-tight mb-2">Business Settings</h2>
+        <p className="text-muted-foreground">Manage your business profile and customize your white-label branding</p>
       </div>
 
       <Card>

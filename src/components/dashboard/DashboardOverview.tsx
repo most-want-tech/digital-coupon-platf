@@ -41,11 +41,15 @@ export function DashboardOverview({ business, coupons, redemptions }: DashboardO
     .sort((a, b) => b.redemptionCount - a.redemptionCount)
     .slice(0, 3);
 
+  const avgRedemptionPerCoupon = coupons.length > 0 
+    ? (redemptions.length / coupons.length).toFixed(1) 
+    : '0';
+
   const stats = [
     {
       title: 'Active Coupons',
       value: activeCoupons.length,
-      change: '+2 this month',
+      change: `${coupons.length} total offers`,
       icon: Tag,
       color: 'text-blue-600'
     },
@@ -57,18 +61,18 @@ export function DashboardOverview({ business, coupons, redemptions }: DashboardO
       color: 'text-green-600'
     },
     {
+      title: 'Avg Per Coupon',
+      value: avgRedemptionPerCoupon,
+      change: 'redemptions per offer',
+      icon: TrendUp,
+      color: 'text-purple-600'
+    },
+    {
       title: 'Expiring Soon',
       value: expiringSoon.length,
       change: 'Within 7 days',
       icon: Calendar,
       color: 'text-orange-600'
-    },
-    {
-      title: 'Engagement Rate',
-      value: redemptions.length > 0 ? `${Math.round((redemptions.length / (coupons.length * 100)) * 100)}%` : '0%',
-      change: 'Average per coupon',
-      icon: TrendUp,
-      color: 'text-purple-600'
     }
   ];
 

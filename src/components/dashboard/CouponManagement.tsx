@@ -95,8 +95,8 @@ export function CouponManagement({ businessId, coupons }: CouponManagementProps)
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Manage Coupons</h2>
-          <p className="text-muted-foreground">Create and edit your promotional offers</p>
+          <h2 className="text-3xl font-bold tracking-tight">Coupon Management</h2>
+          <p className="text-muted-foreground">Create, edit, and manage your promotional offers</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>

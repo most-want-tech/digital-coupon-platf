@@ -71,8 +71,10 @@ export function Analytics({ businessId, coupons, redemptions }: AnalyticsProps) 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-1">Analytics Dashboard</h2>
-        <p className="text-muted-foreground">Track your coupon performance and customer engagement</p>
+        <h2 className="text-3xl font-bold tracking-tight mb-2">Performance Analytics</h2>
+        <p className="text-muted-foreground">
+          Deep dive into your coupon performance metrics and customer engagement trends
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

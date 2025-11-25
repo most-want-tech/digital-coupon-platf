@@ -114,12 +114,22 @@ export function AdminDashboard({
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-2">Dashboard Overview</h2>
-              <p className="text-muted-foreground">
-                Track your business performance and coupon engagement at a glance
-              </p>
+            {/* Welcome Banner */}
+            <div className="rounded-lg border bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight mb-2">
+                    Welcome to Your Admin Dashboard
+                  </h2>
+                  <p className="text-muted-foreground max-w-2xl">
+                    Monitor your coupon performance in real-time. Track redemptions, analyze customer engagement, 
+                    and grow your business with data-driven insights.
+                  </p>
+                </div>
+                <Badge variant="outline" className="shrink-0">Demo Mode</Badge>
+              </div>
             </div>
+            
             <DashboardOverview
               business={currentBusiness}
               coupons={businessCoupons}
