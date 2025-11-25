@@ -8,7 +8,7 @@ A white-label digital coupon book platform that enables local businesses to offe
 3. **Customizable** - The white-label nature should be immediately apparent, demonstrating how easily it adapts to any business's brand identity.
 
 **Complexity Level**: Light Application (multiple features with basic state)
-  - The demo showcases core coupon browsing, filtering, and redemption flows with persistent favorites and redemption tracking, but doesn't require user accounts or complex backend logic at this stage.
+  - The demo showcases core coupon browsing, filtering, and redemption flows with persistent favorites and redemption tracking. Now includes a comprehensive business dashboard for managing coupons, viewing analytics, and customizing branding, but doesn't require user accounts or complex backend logic at this stage.
 
 ## Essential Features
 
@@ -45,6 +45,13 @@ A white-label digital coupon book platform that enables local businesses to offe
 - **Trigger**: Clicking business name or "View Store" button
 - **Progression**: Click business → See profile with info → Browse their coupons → Return to main view
 - **Success criteria**: Complete business information displayed, easy navigation back
+
+### Business Dashboard (Owner View)
+- **Functionality**: Comprehensive admin panel for business owners to manage coupons, view analytics, and customize branding
+- **Purpose**: Enable business owners to independently manage their digital coupon presence and track performance
+- **Trigger**: Clicking "Business Login" button from customer view
+- **Progression**: Access dashboard → View overview/analytics → Create/edit coupons → Customize branding → Switch back to customer view
+- **Success criteria**: All CRUD operations work, analytics display real data, branding customization demonstrates white-label capability
 
 ## Edge Case Handling
 - **No coupons available**: Show empty state with friendly message encouraging business owners to add offers

@@ -1,23 +1,69 @@
-# ✨ Welcome to Your Spark Template!
-You've just launched your brand-new Spark Template Codespace — everything’s fired up and ready for you to explore, build, and create with Spark!
+# CouponHub - Digital Coupon Platform
 
-This template is your blank canvas. It comes with a minimal setup to help you get started quickly with Spark development.
+A white-label digital coupon book SaaS platform that enables local businesses to offer modern, mobile-friendly coupons to customers. This demo showcases both the customer-facing interface and a comprehensive business dashboard.
 
-🚀 What's Inside?
-- A clean, minimal Spark environment
-- Pre-configured for local development
-- Ready to scale with your ideas
-  
-🧠 What Can You Do?
+## 🎯 Features
 
-Right now, this is just a starting point — the perfect place to begin building and testing your Spark applications.
+### Customer View
+- **Coupon Browsing**: Grid display of digital coupons from local businesses
+- **Category Filtering**: Filter by Food & Dining, Retail, Services, or Entertainment
+- **Save Coupons**: Bookmark favorite deals for quick access later
+- **Coupon Redemption**: Generate redemption codes and track usage
+- **Business Profiles**: View detailed information about each business
 
-🧹 Just Exploring?
-No problem! If you were just checking things out and don’t need to keep this code:
+### Business Dashboard
+- **Overview Analytics**: Real-time stats on active coupons, redemptions, and engagement
+- **Coupon Management**: Full CRUD operations for creating and managing promotional offers
+- **Advanced Analytics**: 
+  - Redemption trends over 30 days
+  - Category performance breakdown
+  - Top performing coupons
+  - Weekly growth metrics
+- **Business Settings**: 
+  - Edit business profile and contact information
+  - White-label branding customization (colors, logo, cover images)
+  - API integration documentation
+- **Live Data**: Dashboard uses real redemption data from customer interactions
 
-- Simply delete your Spark.
-- Everything will be cleaned up — no traces left behind.
+## 🚀 Quick Start
 
-📄 License For Spark Template Resources 
+Click the "Business Login" button in the header to access the business dashboard. Switch back to customer view anytime using the "Customer View" button.
 
-The Spark Template files and resources from GitHub are licensed under the terms of the MIT license, Copyright GitHub, Inc.
+## 🎨 White-Label Ready
+
+The platform demonstrates full white-label capability:
+- Custom brand colors (primary, secondary, accent)
+- Custom logo and cover images
+- Business-specific profile information
+- API-ready for integration with existing systems
+
+## 💡 Use Cases
+
+Perfect for:
+- Local business associations
+- Shopping malls and commercial districts  
+- Tourism boards
+- Chamber of Commerce organizations
+- Any organization connecting local businesses with customers
+
+## 📊 Tech Stack
+
+- React 19 + TypeScript
+- Tailwind CSS for styling
+- shadcn/ui component library
+- Framer Motion for animations
+- date-fns for date handling
+- Persistent storage using Spark KV
+
+## 🔧 API Ready
+
+The platform is designed to connect with backend APIs for:
+- Business management
+- Coupon CRUD operations
+- Redemption tracking
+- Analytics data
+- User authentication
+
+---
+
+📄 **License**: MIT License, Copyright GitHub, Inc.

@@ -6,12 +6,14 @@ import { CategoryFilter } from '@/components/CategoryFilter';
 import { CouponCard } from '@/components/CouponCard';
 import { RedemptionModal } from '@/components/RedemptionModal';
 import { BusinessModal } from '@/components/BusinessModal';
+import { BusinessDashboard } from '@/components/BusinessDashboard';
 import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
 import { CategoryType, Coupon, RedemptionHistory } from '@/lib/types';
 import { Tag, Heart, Storefront } from '@phosphor-icons/react';
 import { Toaster, toast } from 'sonner';
 
 function App() {
+  const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
   const [activeCategory, setActiveCategory] = useState<CategoryType>('all');
   const [activeTab, setActiveTab] = useState('all');
   const [savedCoupons, setSavedCoupons] = useKV<string[]>('saved-coupons', []);
@@ -20,6 +22,10 @@ function App() {
   const [redemptionModalOpen, setRedemptionModalOpen] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [businessModalOpen, setBusinessModalOpen] = useState(false);
+
+  if (viewMode === 'business') {
+    return <BusinessDashboard onBackToCustomer={() => setViewMode('customer')} />;
+  }
 
   const savedCouponsArray = savedCoupons || [];
   const redemptionHistoryArray = redemptionHistory || [];
@@ -104,9 +110,7 @@ function App() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => {
-                toast.info('Business admin panel - Coming soon!');
-              }}
+              onClick={() => setViewMode('business')}
             >
               <Storefront className="w-4 h-4" />
               Business Login
