@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useKV } from '@github/spark/hooks';
 import { Button } from '@/components/ui/button';
 import { CouponCard } from '@/components/CouponCard';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
-import { BrandConfig } from '@/lib/types';
 import { Tag, Storefront } from '@phosphor-icons/react';
 import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
+import { useBrandConfigs } from '@/hooks/use-brand-configs';
 
 function App() {
   const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
-  const [brandConfigs, setBrandConfigs] = useKV<Record<string, BrandConfig>>('brand-configs', {});
+  const [brandConfigs, setBrandConfigs] = useBrandConfigs({});
 
   const currentBrandConfig = useMemo(() => {
     if (brandConfigs && Object.keys(brandConfigs).length > 0) {

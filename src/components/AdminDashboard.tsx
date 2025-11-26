@@ -241,6 +241,7 @@ export function AdminDashboard({
             <CouponManagement
               isLoading={isLoading}
               coupons={partnerCoupons}
+              apiPublicKey={API_PUBLIC_KEY}
             />
           </TabsContent>
 

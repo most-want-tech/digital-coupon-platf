@@ -19,9 +19,6 @@ export async function fetchRouticketCoupons({
 
   const response = await fetch(url.toString(), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    },
     signal
   });
 
