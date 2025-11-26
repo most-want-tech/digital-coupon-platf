@@ -2,14 +2,86 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CouponCard } from '@/components/CouponCard';
 import { AdminDashboard } from '@/components/AdminDashboard';
-import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
+import { mockBusinesses } from '@/lib/mock-data';
+import type { Business, Coupon } from '@/lib/types';
 import { Tag, Storefront } from '@phosphor-icons/react';
 import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
 import { useBrandConfigs } from '@/hooks/use-brand-configs';
+import { useRouticketData } from '@/hooks/use-routicket-data';
+
+const API_PUBLIC_KEY = 'PUBLIC-d6fee5badbc6667e';
+const API_SECRET_KEY = 'SECRET-2b5503383995adc8ffaddba8ec79f331';
+const PARTNER_ID = 1427;
+const USER_ID = 1427;
+
+const normalizeDate = (value?: string) => {
+  if (!value || value === '0000-00-00') {
+    const future = new Date();
+    future.setDate(future.getDate() + 30);
+    return future.toISOString();
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    const future = new Date();
+    future.setDate(future.getDate() + 30);
+    return future.toISOString();
+  }
+  return parsed.toISOString();
+};
 
 function App() {
   const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
   const [brandConfigs, setBrandConfigs] = useBrandConfigs({});
+
+  const {
+    data: apiData,
+    isLoading: isApiLoading,
+    error: apiError,
+    refresh: refreshApi,
+    partnerCoupons
+  } = useRouticketData({
+    apiPublicKey: API_PUBLIC_KEY,
+    apiSecret: API_SECRET_KEY,
+    userId: USER_ID,
+    partnerId: PARTNER_ID
+  });
+
+  const partnerBusiness: Business | undefined = useMemo(() => {
+    const firstCoupon = partnerCoupons[0];
+    if (!firstCoupon) return undefined;
+    return {
+      id: `partner-${PARTNER_ID}`,
+      name: firstCoupon.text?.trim() || `Partner ${PARTNER_ID}`,
+      logo: firstCoupon.foto_post || firstCoupon.foto || 'https://routicket.com/favicon.ico',
+      category: 'services',
+      description: apiData?.api_usage?.note || 'Ofertas sincronizadas automáticamente desde Routicket.',
+      address: 'No disponible',
+      hours: 'Sin horario disponible',
+      phone: 'No disponible',
+      coverImage: firstCoupon.foto || firstCoupon.foto_post || 'https://routicket.com/favicon.ico'
+    };
+  }, [partnerCoupons, apiData?.api_usage?.note]);
+
+  const apiCoupons: Coupon[] = useMemo(() => {
+    if (!partnerBusiness) return [];
+    return partnerCoupons.map((coupon) => ({
+      id: String(coupon.id),
+      businessId: partnerBusiness.id,
+      title: coupon.titulo,
+      description: coupon.descripcion || coupon.condiciones || 'Promoción disponible',
+      discount: coupon.text || 'Cupón digital',
+      image: coupon.foto || coupon.foto_post || partnerBusiness.coverImage,
+      terms: coupon.condiciones || '',
+      expiryDate: normalizeDate(coupon.fecha_final),
+      category: partnerBusiness.category,
+      redemptionCode: String(coupon.code ?? coupon.id),
+      isNew: Boolean(coupon.status === 1 && coupon.vistosx < 50),
+      isActive: coupon.status === 1,
+      maxRedemptions: undefined,
+      currentRedemptions: coupon.usado,
+      createdAt: normalizeDate(coupon.fecha_create)
+    }));
+  }, [partnerBusiness, partnerCoupons]);
 
   const currentBrandConfig = useMemo(() => {
     if (brandConfigs && Object.keys(brandConfigs).length > 0) {
@@ -23,14 +95,22 @@ function App() {
     applyBrandColors(currentBrandConfig);
   }, [currentBrandConfig]);
 
+  const fallbackBusiness = mockBusinesses[0];
   const activeBusinessId =
-    currentBrandConfig.businessId || mockBusinesses[0]?.id || '';
-  const displayBusiness = mockBusinesses.find(
-    (business) => business.id === activeBusinessId
-  );
-  const businessCoupons = mockCoupons.filter(
-    (coupon) => coupon.businessId === activeBusinessId
-  );
+    currentBrandConfig.businessId || partnerBusiness?.id || fallbackBusiness?.id || '';
+
+  const displayBusiness: Business | undefined = useMemo(() => {
+    if (partnerBusiness && partnerBusiness.id === activeBusinessId) {
+      return partnerBusiness;
+    }
+    return (
+      mockBusinesses.find((business) => business.id === activeBusinessId) ||
+      partnerBusiness ||
+      fallbackBusiness
+    );
+  }, [activeBusinessId, partnerBusiness, fallbackBusiness]);
+
+  const businessCoupons = displayBusiness && displayBusiness.id === partnerBusiness?.id ? apiCoupons : [];
 
   if (viewMode === 'business') {
     return (
@@ -38,6 +118,12 @@ function App() {
         onBackToCustomer={() => setViewMode('customer')}
         brandConfigs={brandConfigs || {}}
         onBrandConfigUpdate={setBrandConfigs}
+        apiData={apiData}
+        partnerId={PARTNER_ID}
+        apiPublicKey={API_PUBLIC_KEY}
+        isLoading={isApiLoading}
+        error={apiError}
+        onRefresh={refreshApi}
       />
     );
   }
@@ -48,7 +134,7 @@ function App() {
 
   const tagline =
     currentBrandConfig.tagline ||
-    'Explora ofertas exclusivas de negocios locales en tu comunidad.';
+    (partnerBusiness ? `Explora promociones exclusivas de ${partnerBusiness.name}.` : 'Explora ofertas exclusivas de negocios locales en tu comunidad.');
 
   return (
     <div className="min-h-screen" style={backgroundStyle}>
@@ -131,33 +217,41 @@ function App() {
             </p>
           </div>
 
-          {businessCoupons.length === 0 ? (
+          {isApiLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="rounded-xl border bg-muted/40 h-64 animate-pulse" />
+              ))}
+            </div>
+          ) : apiError ? (
+            <div className="text-center py-16 border rounded-xl bg-card">
+              <Tag className="w-16 h-16 mx-auto text-destructive mb-4" />
+              <h4 className="text-xl font-semibold mb-2">No pudimos cargar las promociones</h4>
+              <p className="text-muted-foreground mb-4">{apiError}</p>
+              <Button onClick={refreshApi} size="sm">
+                Reintentar
+              </Button>
+            </div>
+          ) : businessCoupons.length === 0 ? (
             <div className="text-center py-16 border rounded-xl bg-card">
               <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h4 className="text-xl font-semibold mb-2">
                 No hay cupones disponibles por ahora
               </h4>
               <p className="text-muted-foreground">
-                Agrega promociones desde el panel de personalización para mostrarlas aquí.
+                Revisa nuevamente más tarde o sincroniza desde el panel de administración.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {businessCoupons.map((coupon) => {
-                const business = mockBusinesses.find(
-                  (item) => item.id === coupon.businessId
-                );
-                if (!business) return null;
-
-                return (
-                  <CouponCard
-                    key={coupon.id}
-                    coupon={coupon}
-                    business={business}
-                    showActions={false}
-                  />
-                );
-              })}
+              {businessCoupons.map((coupon) => (
+                <CouponCard
+                  key={coupon.id}
+                  coupon={coupon}
+                  business={displayBusiness!}
+                  showActions={false}
+                />
+              ))}
             </div>
           )}
         </section>

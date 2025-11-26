@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +6,6 @@ import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 import { Analytics } from '@/components/dashboard/Analytics';
 import { CouponManagement } from '@/components/dashboard/CouponManagement';
 import { BusinessSettings } from '@/components/dashboard/BusinessSettings';
-import { fetchRouticketCoupons } from '@/lib/routicket';
 import type { BrandConfig, Business, RouticketApiResponse, RouticketCoupon } from '@/lib/types';
 import { 
   ArrowLeft,
@@ -28,69 +27,39 @@ interface AdminDashboardProps {
       | Record<string, BrandConfig>
       | ((prev?: Record<string, BrandConfig>) => Record<string, BrandConfig>)
   ) => void;
+  apiData: RouticketApiResponse | null;
+  partnerId: number;
+  apiPublicKey: string;
+  isLoading: boolean;
+  error: string | null;
+  onRefresh: () => void;
 }
 
 export function AdminDashboard({
   onBackToCustomer,
   brandConfigs,
-  onBrandConfigUpdate
+  onBrandConfigUpdate,
+  apiData,
+  partnerId,
+  apiPublicKey,
+  isLoading,
+  error,
+  onRefresh
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [apiData, setApiData] = useState<RouticketApiResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const API_PUBLIC_KEY = 'PUBLIC-d6fee5badbc6667e';
-  const API_SECRET_KEY = 'SECRET-2b5503383995adc8ffaddba8ec79f331';
-  const API_USER_ID = 1427;
-  const PARTNER_ID = 1427;
-
-  const loadCoupons = useCallback(async (signal?: AbortSignal) => {
-    setIsLoading(true);
-    try {
-      const data = await fetchRouticketCoupons({
-        apiPublicKey: API_PUBLIC_KEY,
-        apiSecret: API_SECRET_KEY,
-        userId: API_USER_ID,
-        partnerId: PARTNER_ID,
-        signal
-      });
-      setApiData(data);
-      setError(null);
-    } catch (err) {
-      if ((err as Error)?.name === 'AbortError') {
-        return;
-      }
-      setError((err as Error).message || 'No fue posible obtener los cupones.');
-    } finally {
-      if (!signal || !signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, [API_PUBLIC_KEY, API_USER_ID]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    loadCoupons(controller.signal);
-    return () => controller.abort();
-  }, [loadCoupons]);
-
-  const handleRefresh = useCallback(() => {
-    loadCoupons();
-  }, [loadCoupons]);
 
   const partnerCoupons = useMemo<RouticketCoupon[]>(() => {
     if (!apiData) return [];
     return apiData.cupones.filter(
-      (coupon) => Number(coupon.id_partner) === PARTNER_ID
+      (coupon) => Number(coupon.id_partner) === partnerId
     );
-  }, [apiData]);
+  }, [apiData, partnerId]);
 
   const currentBusiness: Business = useMemo(() => {
     const firstCoupon = partnerCoupons[0];
     return {
-      id: `partner-${PARTNER_ID}`,
-      name: `Partner ${PARTNER_ID}`,
+      id: `partner-${partnerId}`,
+      name: `Partner ${partnerId}`,
       logo: firstCoupon?.foto_post || firstCoupon?.foto || 'https://routicket.com/favicon.ico',
       category: 'food',
       description: apiData?.api_usage?.note || 'Datos sincronizados desde la API de Routicket.',
@@ -99,7 +68,7 @@ export function AdminDashboard({
       phone: 'No disponible',
       coverImage: firstCoupon?.foto || firstCoupon?.foto_post || 'https://routicket.com/favicon.ico'
     };
-  }, [PARTNER_ID, apiData?.api_usage?.note, partnerCoupons]);
+  }, [partnerId, apiData?.api_usage?.note, partnerCoupons]);
 
   const currentBrandConfig = brandConfigs?.[currentBusiness.id];
 
@@ -156,7 +125,7 @@ export function AdminDashboard({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleRefresh}
+                onClick={onRefresh}
                 disabled={isLoading}
                 className="gap-2"
               >
@@ -179,7 +148,7 @@ export function AdminDashboard({
                 variant="outline"
                 size="sm"
                 className="ml-3"
-                onClick={handleRefresh}
+                onClick={onRefresh}
               >
                 Reintentar
               </Button>
@@ -244,7 +213,7 @@ export function AdminDashboard({
             <CouponManagement
               isLoading={isLoading}
               coupons={partnerCoupons}
-              apiPublicKey={API_PUBLIC_KEY}
+              apiPublicKey={apiPublicKey}
             />
           </TabsContent>
 
