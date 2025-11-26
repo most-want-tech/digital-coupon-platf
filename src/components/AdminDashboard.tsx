@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -6,18 +6,19 @@ import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 import { Analytics } from '@/components/dashboard/Analytics';
 import { CouponManagement } from '@/components/dashboard/CouponManagement';
 import { BusinessSettings } from '@/components/dashboard/BusinessSettings';
-import { mockBusinesses, mockCoupons } from '@/lib/mock-data';
-import { mockRedemptions } from '@/lib/mock-redemptions';
-import { BrandConfig } from '@/lib/types';
+import { fetchRouticketCoupons } from '@/lib/routicket';
+import type { BrandConfig, Business, RouticketApiResponse, RouticketCoupon } from '@/lib/types';
 import { 
   ArrowLeft,
   ChartBar,
   Tag,
   Gear,
   Storefront,
-  SquaresFour
+  SquaresFour,
+  ArrowsClockwise
 } from '@phosphor-icons/react';
 import { Toaster } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface AdminDashboardProps {
   onBackToCustomer: () => void;
@@ -35,16 +36,68 @@ export function AdminDashboard({
   onBrandConfigUpdate
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  
-  // For demo, use first business
-  const currentBusiness = mockBusinesses[0];
-  const businessCoupons = mockCoupons.filter(
-    (coupon) => coupon.businessId === currentBusiness.id
-  );
-  const businessRedemptions = mockRedemptions.filter(
-    (redemption) => redemption.businessId === currentBusiness.id
-  );
-  
+  const [apiData, setApiData] = useState<RouticketApiResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const API_PUBLIC_KEY = 'PUBLIC-381bcdd45bdae032';
+  const API_USER_ID = 1427;
+  const PARTNER_ID = 1427;
+
+  const loadCoupons = useCallback(async (signal?: AbortSignal) => {
+    setIsLoading(true);
+    try {
+      const data = await fetchRouticketCoupons({
+        apiPublicKey: API_PUBLIC_KEY,
+        userId: API_USER_ID,
+        signal
+      });
+      setApiData(data);
+      setError(null);
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') {
+        return;
+      }
+      setError((err as Error).message || 'No fue posible obtener los cupones.');
+    } finally {
+      if (!signal || !signal.aborted) {
+        setIsLoading(false);
+      }
+    }
+  }, [API_PUBLIC_KEY, API_USER_ID]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadCoupons(controller.signal);
+    return () => controller.abort();
+  }, [loadCoupons]);
+
+  const handleRefresh = useCallback(() => {
+    loadCoupons();
+  }, [loadCoupons]);
+
+  const partnerCoupons = useMemo<RouticketCoupon[]>(() => {
+    if (!apiData) return [];
+    return apiData.cupones.filter(
+      (coupon) => Number(coupon.id_partner) === PARTNER_ID
+    );
+  }, [apiData]);
+
+  const currentBusiness: Business = useMemo(() => {
+    const firstCoupon = partnerCoupons[0];
+    return {
+      id: `partner-${PARTNER_ID}`,
+      name: `Partner ${PARTNER_ID}`,
+      logo: firstCoupon?.foto_post || firstCoupon?.foto || 'https://routicket.com/favicon.ico',
+      category: 'food',
+      description: apiData?.api_usage?.note || 'Datos sincronizados desde la API de Routicket.',
+      address: 'No disponible',
+      hours: 'Sin horario disponible',
+      phone: 'No disponible',
+      coverImage: firstCoupon?.foto || firstCoupon?.foto_post || 'https://routicket.com/favicon.ico'
+    };
+  }, [PARTNER_ID, apiData?.api_usage?.note, partnerCoupons]);
+
   const currentBrandConfig = brandConfigs?.[currentBusiness.id];
 
   const handleBrandConfigUpdate = (config: BrandConfig) => {
@@ -53,6 +106,9 @@ export function AdminDashboard({
       [currentBusiness.id]: config
     }));
   };
+
+  const apiUsage = apiData?.api_usage;
+  const stats = apiData?.stats;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -83,16 +139,50 @@ export function AdminDashboard({
                 </div>
               </div>
             </div>
-            <Badge variant="secondary" className="gap-2">
-              <SquaresFour className="w-4 h-4" />
-              Admin Mode
-            </Badge>
+            <div className="flex items-center gap-2">
+              {apiUsage && (
+                <Badge variant="outline" className="gap-2">
+                  <SquaresFour className="w-4 h-4" />
+                  API {apiUsage.contador}/{apiUsage.contador_prev + apiUsage.contador}
+                </Badge>
+              )}
+              <Badge variant="secondary" className="gap-2">
+                <SquaresFour className="w-4 h-4" />
+                Admin Mode
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="gap-2"
+              >
+                <ArrowsClockwise className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Actualizando' : 'Actualizar'}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle>Ocurrió un problema al consultar la API</AlertTitle>
+            <AlertDescription>
+              {error}
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-3"
+                onClick={handleRefresh}
+              >
+                Reintentar
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="overview" className="gap-2">
@@ -126,29 +216,31 @@ export function AdminDashboard({
                     and grow your business with data-driven insights.
                   </p>
                 </div>
-                <Badge variant="outline" className="shrink-0">Demo Mode</Badge>
+                <Badge variant="outline" className="shrink-0">Datos en vivo</Badge>
               </div>
             </div>
             
             <DashboardOverview
-              business={currentBusiness}
-              coupons={businessCoupons}
-              redemptions={businessRedemptions}
+              isLoading={isLoading}
+              partnerName={currentBusiness.name}
+              apiUsage={apiUsage}
+              stats={stats}
+              coupons={partnerCoupons}
             />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
             <Analytics
-              businessId={currentBusiness.id}
-              coupons={businessCoupons}
-              redemptions={businessRedemptions}
+              isLoading={isLoading}
+              stats={stats}
+              coupons={partnerCoupons}
             />
           </TabsContent>
 
           <TabsContent value="coupons" className="space-y-6">
             <CouponManagement
-              businessId={currentBusiness.id}
-              coupons={businessCoupons}
+              isLoading={isLoading}
+              coupons={partnerCoupons}
             />
           </TabsContent>
 

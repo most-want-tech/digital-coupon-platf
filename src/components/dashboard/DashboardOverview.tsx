@@ -1,179 +1,229 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Business, Coupon, RedemptionHistory } from '@/lib/types';
-import { 
-  TrendUp, 
-  Tag, 
-  Eye, 
-  Users,
-  Calendar
+import type { RouticketApiUsage, RouticketCoupon, RouticketStats } from '@/lib/types';
+import {
+  Eye,
+  Tag,
+  TrendUp,
+  Users
 } from '@phosphor-icons/react';
-import { format, subDays, isAfter, isBefore } from 'date-fns';
 
 interface DashboardOverviewProps {
-  business: Business;
-  coupons: Coupon[];
-  redemptions: RedemptionHistory[];
+  isLoading: boolean;
+  partnerName: string;
+  apiUsage?: RouticketApiUsage;
+  stats?: RouticketStats;
+  coupons: RouticketCoupon[];
 }
 
-export function DashboardOverview({ business, coupons, redemptions }: DashboardOverviewProps) {
-  const activeCoupons = coupons.filter(c => {
-    const expiry = new Date(c.expiryDate);
-    return isAfter(expiry, new Date());
-  });
+export function DashboardOverview({
+  isLoading,
+  partnerName,
+  apiUsage,
+  stats,
+  coupons
+}: DashboardOverviewProps) {
+  const activeCoupons = coupons.filter((coupon) => coupon.status === 1);
+  const inactiveCoupons = coupons.filter((coupon) => coupon.status !== 1);
 
-  const expiringSoon = coupons.filter(c => {
-    const expiry = new Date(c.expiryDate);
-    const soon = subDays(new Date(), -7);
-    return isAfter(expiry, new Date()) && isBefore(expiry, soon);
-  });
+  const totalCoupons = coupons.length;
+  const totalViews = coupons.reduce((sum, coupon) => sum + (coupon.vistosx || 0), 0);
+  const totalScans = coupons.reduce((sum, coupon) => sum + (coupon.scan || 0), 0);
+  const totalUsed = coupons.reduce((sum, coupon) => sum + (coupon.usado || 0), 0);
+  const averageViews = totalCoupons > 0 ? totalViews / totalCoupons : 0;
+  const averageScans = totalCoupons > 0 ? totalScans / totalCoupons : 0;
 
-  const last30Days = redemptions.filter(r => {
-    const redemptionDate = new Date(r.redeemedAt);
-    const thirtyDaysAgo = subDays(new Date(), 30);
-    return isAfter(redemptionDate, thirtyDaysAgo);
-  });
+  const findTopCoupon = (metric: 'vistosx' | 'scan' | 'usado') => {
+    if (coupons.length === 0) return undefined;
+    return coupons.reduce((top, current) => (current[metric] > (top?.[metric] ?? -Infinity) ? current : top), coupons[0]);
+  };
 
-  const topCoupons = coupons
-    .map(coupon => ({
-      ...coupon,
-      redemptionCount: redemptions.filter(r => r.couponId === coupon.id).length
-    }))
-    .sort((a, b) => b.redemptionCount - a.redemptionCount)
-    .slice(0, 3);
-
-  const avgRedemptionPerCoupon = coupons.length > 0 
-    ? (redemptions.length / coupons.length).toFixed(1) 
-    : '0';
-
-  const stats = [
+  const statCards = [
     {
-      title: 'Active Coupons',
-      value: activeCoupons.length,
-      change: `${coupons.length} total offers`,
+      title: 'Cupones del partner',
+      value: totalCoupons,
+      helper: `${activeCoupons.length} activos / ${inactiveCoupons.length} inactivos`,
       icon: Tag,
       color: 'text-blue-600'
     },
     {
-      title: 'Total Redemptions',
-      value: redemptions.length,
-      change: `${last30Days.length} in last 30 days`,
+      title: 'Vistas acumuladas',
+      value: totalViews,
+      helper: `${averageViews.toFixed(2)} en promedio`,
+      icon: Eye,
+      color: 'text-primary'
+    },
+    {
+      title: 'Escaneos',
+      value: totalScans,
+      helper: `${totalUsed} usos reportados`,
       icon: Users,
       color: 'text-green-600'
     },
     {
-      title: 'Avg Per Coupon',
-      value: avgRedemptionPerCoupon,
-      change: 'redemptions per offer',
+      title: 'Promedio general',
+      value: averageScans.toFixed(2),
+      helper: 'Actividad media por cupón',
       icon: TrendUp,
       color: 'text-purple-600'
-    },
-    {
-      title: 'Expiring Soon',
-      value: expiringSoon.length,
-      change: 'Within 7 days',
-      icon: Calendar,
-      color: 'text-orange-600'
     }
   ];
 
+  const topSections = [
+    {
+      label: 'Más visto',
+      coupon: findTopCoupon('vistosx'),
+      valueLabel: (coupon?: RouticketCoupon) => `${coupon?.vistosx ?? 0} vistas` as string
+    },
+    {
+      label: 'Más escaneado',
+      coupon: findTopCoupon('scan'),
+      valueLabel: (coupon?: RouticketCoupon) => `${coupon?.scan ?? 0} escaneos`
+    },
+    {
+      label: 'Más usado',
+      coupon: findTopCoupon('usado'),
+      valueLabel: (coupon?: RouticketCoupon) => `${coupon?.usado ?? 0} usos`
+    }
+  ];
+
+  const renderSkeleton = () => (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index} className="animate-pulse">
+          <CardHeader className="space-y-2">
+            <CardTitle className="h-4 bg-muted rounded" />
+            <div className="h-8 bg-muted rounded" />
+            <div className="h-3 bg-muted rounded w-3/4" />
+          </CardHeader>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <Icon className={`w-5 h-5 ${stat.color}`} weight="duotone" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stat.change}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {isLoading && !stats ? (
+        renderSkeleton()
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {statCards.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.title}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <Icon className={`w-5 h-5 ${stat.color}`} weight="duotone" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.helper}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Top Performing Coupons</CardTitle>
-            <CardDescription>Coupons with the most redemptions</CardDescription>
+            <CardTitle>Destacados para {partnerName}</CardTitle>
+            <CardDescription>
+              Datos consolidados directamente desde Routicket
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {topCoupons.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Eye className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No redemptions yet</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {topCoupons.map((coupon, index) => (
-                  <div key={coupon.id} className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                      {index + 1}
+            <div className="grid gap-4 md:grid-cols-3">
+              {topSections.map(({ label, coupon: topCoupon, valueLabel }) => {
+                if (!topCoupon || (topCoupon.vistosx === 0 && topCoupon.scan === 0 && topCoupon.usado === 0)) {
+                  return (
+                    <div key={label} className="rounded-lg border bg-muted/40 p-4 text-center text-sm text-muted-foreground">
+                      <p className="font-medium mb-2">{label}</p>
+                      <p>Sin datos disponibles</p>
                     </div>
-                    <img 
-                      src={coupon.image} 
-                      alt={coupon.title}
-                      className="w-12 h-12 rounded-lg object-cover"
+                  );
+                }
+                return (
+                  <div key={label} className="rounded-lg border bg-card p-4 space-y-3">
+                    <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+                    <img
+                      src={topCoupon.foto}
+                      alt={topCoupon.titulo}
+                      className="h-24 w-full rounded-md object-cover"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{coupon.title}</p>
-                      <p className="text-sm text-muted-foreground">{coupon.discount}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{coupon.redemptionCount}</p>
-                      <p className="text-xs text-muted-foreground">redemptions</p>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-sm leading-tight">{topCoupon.titulo}</p>
+                      <p className="text-xs text-muted-foreground">{valueLabel(topCoupon)}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest coupon redemptions</CardDescription>
+            <CardTitle>Uso de la API</CardTitle>
+            <CardDescription>Información en tiempo real</CardDescription>
           </CardHeader>
-          <CardContent>
-            {redemptions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No activity yet</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {redemptions.slice(-5).reverse().map((redemption, index) => {
-                  const coupon = coupons.find(c => c.id === redemption.couponId);
-                  if (!coupon) return null;
-                  
-                  return (
-                    <div key={`${redemption.couponId}-${index}`} className="flex items-center gap-4">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <img 
-                        src={coupon.image} 
-                        alt={coupon.title}
-                        className="w-10 h-10 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{coupon.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(redemption.redeemedAt), 'MMM d, yyyy h:mm a')}
-                        </p>
-                      </div>
+          <CardContent className="space-y-3 text-sm">
+            {apiUsage ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Clave pública</span>
+                  <span className="font-mono text-xs">{apiUsage.api_public}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Llamadas actuales</span>
+                  <span className="font-semibold">{apiUsage.contador}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Llamadas previas</span>
+                  <span>{apiUsage.contador_prev}</span>
+                </div>
+                {stats && (
+                  <div className="space-y-2 pt-2 text-xs">
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Registros totales API</span>
+                      <span className="font-medium text-foreground">{stats.records}</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Bytes transferidos</span>
+                      <span className="font-medium text-foreground">{stats.data_kb} KB</span>
+                    </div>
+                  </div>
+                )}
+                <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+                  {apiUsage.note}
+                </div>
+                {stats && (
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div>
+                      <span className="block text-[11px] uppercase">Vistas (API)</span>
+                      <span className="font-semibold text-foreground">{stats.totals.vistosx}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[11px] uppercase">Escaneos (API)</span>
+                      <span className="font-semibold text-foreground">{stats.totals.scan}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[11px] uppercase">Likes (API)</span>
+                      <span className="font-semibold text-foreground">{stats.totals.mg}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[11px] uppercase">Comentarios (API)</span>
+                      <span className="font-semibold text-foreground">{stats.totals.comentarios}</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-muted-foreground">Sin información de uso disponible.</p>
             )}
           </CardContent>
         </Card>

@@ -1,355 +1,191 @@
-import { useState } from 'react';
-import { useKV } from '@github/spark/hooks';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Coupon, CategoryType } from '@/lib/types';
-import { 
-  Plus, 
-  PencilSimple, 
-  Trash,
-  Eye,
-  EyeSlash,
-  Copy
-} from '@phosphor-icons/react';
-import { toast } from 'sonner';
-import { format, isAfter } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import type { RouticketCoupon } from '@/lib/types';
+import { ArrowSquareOut, Clock, Eye, ListChecks } from '@phosphor-icons/react';
 
 interface CouponManagementProps {
-  businessId: string;
-  coupons: Coupon[];
+  isLoading: boolean;
+  coupons: RouticketCoupon[];
 }
 
-export function CouponManagement({ businessId, coupons }: CouponManagementProps) {
-  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [redemptionHistory] = useKV<any[]>('redemption-history', []);
+const numberFormatter = new Intl.NumberFormat('es-MX');
 
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    discount: '',
-    terms: '',
-    expiryDate: '',
-    category: 'food' as Exclude<CategoryType, 'all'>
-  });
+const formatDate = (value: string) => {
+  if (!value) return '—';
+  const hasTime = value.includes(' ');
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'medium',
+    ...(hasTime ? { timeStyle: 'short' } : {})
+  }).format(date);
+};
 
-  const handleCreateCoupon = () => {
-    setEditingCoupon(null);
-    setFormData({
-      title: '',
-      description: '',
-      discount: '',
-      terms: '',
-      expiryDate: '',
-      category: 'food'
-    });
-    setIsDialogOpen(true);
-  };
+export function CouponManagement({ isLoading, coupons }: CouponManagementProps) {
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
-  const handleEditCoupon = (coupon: Coupon) => {
-    setEditingCoupon(coupon);
-    setFormData({
-      title: coupon.title,
-      description: coupon.description,
-      discount: coupon.discount,
-      terms: coupon.terms,
-      expiryDate: coupon.expiryDate,
-      category: coupon.category
-    });
-    setIsDialogOpen(true);
-  };
+  const filteredCoupons = useMemo(() => {
+    if (statusFilter === 'all') return coupons;
+    if (statusFilter === 'active') return coupons.filter((coupon) => coupon.status === 1);
+    return coupons.filter((coupon) => coupon.status !== 1);
+  }, [coupons, statusFilter]);
 
-  const handleSave = () => {
-    if (!formData.title || !formData.description || !formData.discount || !formData.expiryDate) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (editingCoupon) {
-      toast.success('Coupon updated successfully!');
-    } else {
-      toast.success('Coupon created successfully!');
-    }
-    
-    setIsDialogOpen(false);
-  };
-
-  const handleDelete = (couponId: string) => {
-    toast.success('Coupon deleted successfully');
-  };
-
-  const handleDuplicate = (coupon: Coupon) => {
-    toast.success('Coupon duplicated successfully');
-  };
-
-  const activeCoupons = coupons.filter(c => isAfter(new Date(c.expiryDate), new Date()));
-  const expiredCoupons = coupons.filter(c => !isAfter(new Date(c.expiryDate), new Date()));
+  const loadingSkeleton = (
+    <div className="grid gap-4">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <Card key={index} className="animate-pulse">
+          <CardContent className="p-6 space-y-4">
+            <div className="h-4 w-1/3 bg-muted rounded" />
+            <div className="h-5 w-2/3 bg-muted rounded" />
+            <div className="h-24 bg-muted rounded" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Coupon Management</h2>
-          <p className="text-muted-foreground">Create, edit, and manage your promotional offers</p>
+          <h2 className="text-3xl font-bold tracking-tight">Cupones sincronizados</h2>
+          <p className="text-muted-foreground">
+            Vista consolidada de los cupones que la API devolvió para el partner seleccionado. No se permite edición desde esta vista.
+          </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleCreateCoupon} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Create Coupon
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}</DialogTitle>
-              <DialogDescription>
-                {editingCoupon ? 'Update your coupon details below' : 'Fill in the details to create a new coupon'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Coupon Title *</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., 20% Off All Items"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="discount">Discount Label *</Label>
-                <Input
-                  id="discount"
-                  placeholder="e.g., 20% OFF, $10 OFF, BUY 1 GET 1"
-                  value={formData.discount}
-                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Brief description of the offer"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="terms">Terms & Conditions</Label>
-                <Textarea
-                  id="terms"
-                  placeholder="List any restrictions or requirements"
-                  value={formData.terms}
-                  onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value as Exclude<CategoryType, 'all'> })}
-                  >
-                    <SelectTrigger id="category">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="food">Food & Dining</SelectItem>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="services">Services</SelectItem>
-                      <SelectItem value="entertainment">Entertainment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="expiryDate">Expiry Date *</Label>
-                  <Input
-                    id="expiryDate"
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave}>
-                  {editingCoupon ? 'Update Coupon' : 'Create Coupon'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="inline-flex rounded-md border bg-background p-1 text-sm">
+          <Button
+            variant={statusFilter === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setStatusFilter('all')}
+          >
+            Todos ({coupons.length})
+          </Button>
+          <Button
+            variant={statusFilter === 'active' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setStatusFilter('active')}
+          >
+            Activos ({coupons.filter((coupon) => coupon.status === 1).length})
+          </Button>
+          <Button
+            variant={statusFilter === 'inactive' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setStatusFilter('inactive')}
+          >
+            Inactivos ({coupons.filter((coupon) => coupon.status !== 1).length})
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Active Coupons ({activeCoupons.length})</h3>
-          {activeCoupons.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Eye className="w-16 h-16 mx-auto text-muted-foreground mb-4" weight="duotone" />
-                <h4 className="text-lg font-semibold mb-2">No active coupons</h4>
-                <p className="text-muted-foreground mb-4">Create your first coupon to start attracting customers</p>
-                <Button onClick={handleCreateCoupon} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create First Coupon
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {activeCoupons.map((coupon) => {
-                const redemptionCount = (redemptionHistory || []).filter((r: any) => r.couponId === coupon.id).length;
-                
-                return (
-                  <Card key={coupon.id}>
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
-                        <img 
-                          src={coupon.image} 
-                          alt={coupon.title}
-                          className="w-32 h-32 rounded-lg object-cover flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="text-lg font-semibold">{coupon.title}</h4>
-                                <Badge variant="secondary">{coupon.discount}</Badge>
-                                {coupon.isNew && <Badge>New</Badge>}
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-2">{coupon.description}</p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>Code: {coupon.redemptionCode}</span>
-                                <span>•</span>
-                                <span>Expires: {format(new Date(coupon.expiryDate), 'MMM d, yyyy')}</span>
-                                <span>•</span>
-                                <span>{redemptionCount} redemptions</span>
-                              </div>
-                            </div>
-                            <div className="flex gap-2 flex-shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDuplicate(coupon)}
-                                title="Duplicate"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditCoupon(coupon)}
-                                title="Edit"
-                              >
-                                <PencilSimple className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(coupon.id)}
-                                title="Delete"
-                              >
-                                <Trash className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          {coupon.terms && (
-                            <div className="mt-3 pt-3 border-t">
-                              <p className="text-xs text-muted-foreground">
-                                <strong>Terms:</strong> {coupon.terms}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+      {isLoading ? (
+        loadingSkeleton
+      ) : filteredCoupons.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <Clock className="w-12 h-12 mx-auto mb-4" weight="duotone" />
+            <h3 className="text-lg font-semibold mb-1">No se encontraron cupones</h3>
+            <p className="text-sm">Prueba cambiando el filtro o vuelve a sincronizar la información.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {filteredCoupons.map((coupon) => {
+            const isActive = coupon.status === 1;
+            return (
+              <Card key={coupon.id}>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                    <img
+                      src={coupon.foto}
+                      alt={coupon.titulo}
+                      className="h-32 w-32 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Activo' : 'Inactivo'}</Badge>
+                        <Badge variant="outline">ID #{coupon.id}</Badge>
+                        <Badge variant="outline">Partner {coupon.id_partner}</Badge>
+                        {coupon.id_empresa !== 0 && (
+                          <Badge variant="outline">Empresa {coupon.id_empresa}</Badge>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {expiredCoupons.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-muted-foreground">
-              Expired Coupons ({expiredCoupons.length})
-            </h3>
-            <div className="grid gap-4 opacity-60">
-              {expiredCoupons.map((coupon) => {
-                const redemptionCount = (redemptionHistory || []).filter((r: any) => r.couponId === coupon.id).length;
-                
-                return (
-                  <Card key={coupon.id}>
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
-                        <img 
-                          src={coupon.image} 
-                          alt={coupon.title}
-                          className="w-32 h-32 rounded-lg object-cover flex-shrink-0 grayscale"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="text-lg font-semibold">{coupon.title}</h4>
-                                <Badge variant="secondary">{coupon.discount}</Badge>
-                                <Badge variant="outline">Expired</Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-2">{coupon.description}</p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>Expired: {format(new Date(coupon.expiryDate), 'MMM d, yyyy')}</span>
-                                <span>•</span>
-                                <span>{redemptionCount} total redemptions</span>
-                              </div>
-                            </div>
-                            <div className="flex gap-2 flex-shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDuplicate(coupon)}
-                                title="Duplicate"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(coupon.id)}
-                                title="Delete"
-                              >
-                                <Trash className="w-4 h-4" />
-                              </Button>
-                            </div>
+                      <div>
+                        <h3 className="text-xl font-semibold leading-tight">{coupon.titulo}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{coupon.descripcion || coupon.condiciones}</p>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-3 text-sm">
+                        <div className="rounded border bg-muted/40 p-3">
+                          <p className="text-xs text-muted-foreground">Vigencia</p>
+                          <p className="font-medium">{formatDate(coupon.fecha_inicio)} → {formatDate(coupon.fecha_final)}</p>
+                        </div>
+                        <div className="rounded border bg-muted/40 p-3 flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-primary" />
+                          <div>
+                            <p className="text-xs text-muted-foreground">Vistas</p>
+                            <p className="font-semibold">{numberFormatter.format(coupon.vistosx ?? 0)}</p>
+                          </div>
+                        </div>
+                        <div className="rounded border bg-muted/40 p-3 flex items-center gap-2">
+                          <ListChecks className="w-4 h-4 text-green-600" />
+                          <div>
+                            <p className="text-xs text-muted-foreground">Escaneos</p>
+                            <p className="font-semibold">{numberFormatter.format(coupon.scan ?? 0)}</p>
                           </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+                      <div className="rounded-lg border bg-card/60 p-3 text-sm">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Condiciones</p>
+                        <p>{coupon.condiciones || 'Sin restricciones adicionales registradas.'}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {coupon.link && (
+                          <Button asChild variant="outline" size="sm" className="gap-2">
+                            <a href={coupon.link} target="_blank" rel="noopener noreferrer">
+                              Ver en Routicket
+                              <ArrowSquareOut className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        )}
+                        {coupon.url_tienda && coupon.url_tienda !== '0' && (
+                          <Button asChild variant="ghost" size="sm" className="gap-2">
+                            <a href={coupon.url_tienda} target="_blank" rel="noopener noreferrer">
+                              Sitio del negocio
+                              <ArrowSquareOut className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-4 text-xs text-muted-foreground">
+                        <div>
+                          <span className="block text-[11px] uppercase">Likes</span>
+                          <span className="font-semibold text-sm text-foreground">{numberFormatter.format(coupon.mg ?? 0)}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[11px] uppercase">Comentarios</span>
+                          <span className="font-semibold text-sm text-foreground">{numberFormatter.format(coupon.comentarios ?? 0)}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[11px] uppercase">Código</span>
+                          <span className="font-semibold text-sm text-foreground">{coupon.code || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[11px] uppercase">Creado el</span>
+                          <span className="font-semibold text-sm text-foreground">{formatDate(coupon.fecha_create)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

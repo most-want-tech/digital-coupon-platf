@@ -1,240 +1,241 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Coupon, RedemptionHistory } from '@/lib/types';
-import { 
-  ChartBar,
-  TrendUp,
+import type { RouticketCoupon, RouticketStats } from '@/lib/types';
+import {
   Calendar,
-  Tag
+  ChartBar,
+  ListChecks,
+  TrendUp
 } from '@phosphor-icons/react';
-import { format, subDays, isAfter, startOfDay } from 'date-fns';
 
 interface AnalyticsProps {
-  businessId: string;
-  coupons: Coupon[];
-  redemptions: RedemptionHistory[];
+  isLoading: boolean;
+  stats?: RouticketStats;
+  coupons: RouticketCoupon[];
 }
 
-export function Analytics({ businessId, coupons, redemptions }: AnalyticsProps) {
-  const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = subDays(new Date(), 29 - i);
-    return startOfDay(date);
-  });
+const numberFormatter = new Intl.NumberFormat('es-MX');
 
-  const redemptionsByDay = last30Days.map(day => {
-    const count = redemptions.filter(r => {
-      const redemptionDate = startOfDay(new Date(r.redeemedAt));
-      return redemptionDate.getTime() === day.getTime();
-    }).length;
-    
-    return {
-      date: format(day, 'MMM d'),
-      count
-    };
-  });
+const formatDate = (value?: string) => {
+  if (!value) return '—';
+  const hasTime = value.includes(' ');
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'medium',
+    ...(hasTime ? { timeStyle: 'short' } : {})
+  }).format(date);
+};
 
-  const maxRedemptions = Math.max(...redemptionsByDay.map(d => d.count), 1);
+export function Analytics({ isLoading, stats, coupons }: AnalyticsProps) {
+  const totalCoupons = stats?.records ?? coupons.length;
+  const totalViews = stats?.totals.vistosx ?? coupons.reduce((sum, coupon) => sum + (coupon.vistosx || 0), 0);
+  const totalScans = stats?.totals.scan ?? coupons.reduce((sum, coupon) => sum + (coupon.scan || 0), 0);
+  const averageViews = stats?.averages.vistosx ?? (coupons.length > 0 ? totalViews / coupons.length : 0);
+  const averageScans = stats?.averages.scan ?? (coupons.length > 0 ? totalScans / coupons.length : 0);
 
-  const categoryStats = coupons.reduce((acc, coupon) => {
-    const redemptionCount = redemptions.filter(r => r.couponId === coupon.id).length;
-    acc[coupon.category] = (acc[coupon.category] || 0) + redemptionCount;
-    return acc;
-  }, {} as Record<string, number>);
+  const statusEntries = Object.entries(stats?.by_status ?? {}).map(([status, count]) => ({
+    status,
+    count
+  }));
 
-  const totalRedemptions = redemptions.length;
-  const avgRedemptionsPerCoupon = coupons.length > 0 ? (totalRedemptions / coupons.length).toFixed(1) : '0';
-  
-  const last7DaysRedemptions = redemptions.filter(r => {
-    const redemptionDate = new Date(r.redeemedAt);
-    const sevenDaysAgo = subDays(new Date(), 7);
-    return isAfter(redemptionDate, sevenDaysAgo);
-  }).length;
+  const tipoEntries = Object.entries(stats?.by_tipo ?? {}).map(([tipo, count]) => ({
+    tipo,
+    count
+  }));
 
-  const previous7DaysRedemptions = redemptions.filter(r => {
-    const redemptionDate = new Date(r.redeemedAt);
-    const fourteenDaysAgo = subDays(new Date(), 14);
-    const sevenDaysAgo = subDays(new Date(), 7);
-    return isAfter(redemptionDate, fourteenDaysAgo) && !isAfter(redemptionDate, sevenDaysAgo);
-  }).length;
+  const totals = stats?.totals;
+  const averages = stats?.averages;
+  const dates = stats?.dates;
 
-  const growthRate = previous7DaysRedemptions > 0 
-    ? (((last7DaysRedemptions - previous7DaysRedemptions) / previous7DaysRedemptions) * 100).toFixed(1)
-    : last7DaysRedemptions > 0 ? '100' : '0';
-
-  const topPerformers = coupons
-    .map(coupon => ({
-      ...coupon,
-      redemptionCount: redemptions.filter(r => r.couponId === coupon.id).length
-    }))
-    .sort((a, b) => b.redemptionCount - a.redemptionCount)
-    .slice(0, 5);
+  if (!stats && !isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>No hay datos de analítica disponibles</CardTitle>
+          <CardDescription>Sincroniza nuevamente para mostrar la información del API.</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight mb-2">Performance Analytics</h2>
+        <h2 className="text-3xl font-bold tracking-tight mb-2">Analítica del Partner</h2>
         <p className="text-muted-foreground">
-          Deep dive into your coupon performance metrics and customer engagement trends
+          Visualiza el rendimiento agregado de los cupones con la información provista por Routicket.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Redemptions</CardTitle>
-            <Tag className="w-5 h-5 text-primary" weight="duotone" />
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-sm font-medium">Registros totales</CardTitle>
+            <TrendUp className="w-5 h-5 text-primary" weight="duotone" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalRedemptions}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              All time across all coupons
-            </p>
+            <div className="text-3xl font-bold">{numberFormatter.format(totalCoupons)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Cupones recuperados desde la API</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Weekly Growth</CardTitle>
-            <TrendUp className="w-5 h-5 text-green-600" weight="duotone" />
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-sm font-medium">Vistas acumuladas</CardTitle>
+            <ChartBar className="w-5 h-5 text-blue-600" weight="duotone" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {Number(growthRate) >= 0 ? '+' : ''}{growthRate}%
+            <div className="text-3xl font-bold">{numberFormatter.format(totalViews)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Promedio {averageViews.toFixed(2)} por cupón</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-sm font-medium">Escaneos registrados</CardTitle>
+            <ListChecks className="w-5 h-5 text-green-600" weight="duotone" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{numberFormatter.format(totalScans)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Promedio {averageScans.toFixed(2)} por cupón</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-sm font-medium">Reacciones</CardTitle>
+            <TrendUp className="w-5 h-5 text-purple-600" weight="duotone" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{numberFormatter.format(totals?.mg ?? 0)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Comentarios: {numberFormatter.format(totals?.comentarios ?? 0)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribución por estado</CardTitle>
+            <CardDescription>Cupones activos vs. inactivos</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {statusEntries.length === 0 && (
+              <p className="text-sm text-muted-foreground">Sin datos de estado disponibles.</p>
+            )}
+            {statusEntries.map(({ status, count }) => {
+              const statusLabel = status === '1' ? 'Activos' : 'Inactivos';
+              const percentage = totalCoupons > 0 ? (Number(count) / totalCoupons) * 100 : 0;
+
+              return (
+                <div key={status} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{statusLabel}</span>
+                    <span className="text-muted-foreground">{numberFormatter.format(count)} ({percentage.toFixed(1)}%)</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Fechas relevantes</CardTitle>
+            <CardDescription>Rango de vigencia global</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Primera fecha de inicio</span>
+              <span>{formatDate(dates?.min_fecha_inicio)}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {last7DaysRedemptions} redemptions this week
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Per Coupon</CardTitle>
-            <ChartBar className="w-5 h-5 text-purple-600" weight="duotone" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{avgRedemptionsPerCoupon}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Average redemptions per offer
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Última fecha de fin</span>
+              <span>{formatDate(dates?.max_fecha_final)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Primer registro</span>
+              <span>{formatDate(dates?.min_fecha_create)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Último registro</span>
+              <span>{formatDate(dates?.max_fecha_create)}</span>
+            </div>
+            <p className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              Las fechas se muestran tal como las expone la API, ajustadas al huso horario del navegador.
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Redemptions Over Time</CardTitle>
-          <CardDescription>Last 30 days of coupon activity</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-end justify-between h-48 gap-1">
-              {redemptionsByDay.map((day, index) => (
-                <div key={index} className="flex-1 flex flex-col items-center justify-end group">
-                  <div className="w-full relative">
-                    <div 
-                      className="w-full bg-primary rounded-t hover:bg-primary/80 transition-colors cursor-pointer"
-                      style={{ 
-                        height: `${(day.count / maxRedemptions) * 160}px`,
-                        minHeight: day.count > 0 ? '4px' : '0px'
-                      }}
-                      title={`${day.date}: ${day.count} redemptions`}
-                    />
-                  </div>
-                  {index % 5 === 0 && (
-                    <span className="text-xs text-muted-foreground mt-2 rotate-0">
-                      {day.date}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center justify-center gap-4 pt-4 border-t">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-primary"></div>
-                <span className="text-sm text-muted-foreground">Redemptions</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Category Performance</CardTitle>
-            <CardDescription>Redemptions by category</CardDescription>
+            <CardTitle>Actividad por tipo</CardTitle>
+            <CardDescription>Clasificación directa desde Routicket</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Object.entries(categoryStats).map(([category, count]) => {
-                const percentage = totalRedemptions > 0 ? (count / totalRedemptions) * 100 : 0;
-                const categoryLabels: Record<string, string> = {
-                  food: 'Food & Dining',
-                  retail: 'Retail',
-                  services: 'Services',
-                  entertainment: 'Entertainment'
-                };
-                
-                return (
-                  <div key={category} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{categoryLabels[category] || category}</span>
-                      <span className="text-muted-foreground">{count} ({percentage.toFixed(0)}%)</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
+          <CardContent className="space-y-4">
+            {tipoEntries.length === 0 && (
+              <p className="text-sm text-muted-foreground">Sin datos de tipo disponibles.</p>
+            )}
+            {tipoEntries.map(({ tipo, count }) => {
+              const percentage = totalCoupons > 0 ? (Number(count) / totalCoupons) * 100 : 0;
+              return (
+                <div key={tipo} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{tipo === '0' ? 'Cupón' : tipo}</span>
+                    <span className="text-muted-foreground">{numberFormatter.format(count)} ({percentage.toFixed(1)}%)</span>
                   </div>
-                );
-              })}
-              {Object.keys(categoryStats).length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ChartBar className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No data available yet</p>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-secondary rounded-full"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
+              );
+            })}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Top Performers</CardTitle>
-            <CardDescription>Most redeemed coupons</CardDescription>
+            <CardTitle>Promedios vs. totales</CardTitle>
+            <CardDescription>Comparativa rápida de interacción</CardDescription>
           </CardHeader>
-          <CardContent>
-            {topPerformers.length === 0 || topPerformers.every(c => c.redemptionCount === 0) ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Tag className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No redemptions yet</p>
+          <CardContent className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border bg-muted/40 p-3">
+                <p className="text-xs text-muted-foreground">Promedio vistas</p>
+                <p className="text-lg font-semibold">{averageViews.toFixed(2)}</p>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {topPerformers.filter(c => c.redemptionCount > 0).map((coupon, index) => (
-                  <div key={coupon.id} className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-xs flex-shrink-0">
-                      {index + 1}
-                    </div>
-                    <img 
-                      src={coupon.image} 
-                      alt={coupon.title}
-                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{coupon.title}</p>
-                      <p className="text-xs text-muted-foreground">{coupon.discount}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-sm">{coupon.redemptionCount}</p>
-                      <p className="text-xs text-muted-foreground">uses</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="rounded-lg border bg-muted/40 p-3">
+                <p className="text-xs text-muted-foreground">Promedio escaneos</p>
+                <p className="text-lg font-semibold">{averageScans.toFixed(2)}</p>
               </div>
-            )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Usos reportados</p>
+                <p className="text-lg font-semibold">{numberFormatter.format(totals?.usado ?? 0)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Comentarios</p>
+                <p className="text-lg font-semibold">{numberFormatter.format(totals?.comentarios ?? 0)}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Valores calculados en base a los datos agregados de la respuesta. Para granularidad adicional se requiere acceso a endpoints específicos de canjes.
+            </p>
           </CardContent>
         </Card>
       </div>
