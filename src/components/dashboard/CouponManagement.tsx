@@ -8,6 +8,7 @@ import { ArrowSquareOut, Clock, Eye, ListChecks } from '@phosphor-icons/react';
 interface CouponManagementProps {
   isLoading: boolean;
   coupons: RouticketCoupon[];
+  apiPublicKey?: string;
 }
 
 const numberFormatter = new Intl.NumberFormat('es-MX');
@@ -25,7 +26,7 @@ const formatDate = (value: string) => {
   }).format(date);
 };
 
-export function CouponManagement({ isLoading, coupons }: CouponManagementProps) {
+export function CouponManagement({ isLoading, coupons, apiPublicKey }: CouponManagementProps) {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const filteredCoupons = useMemo(() => {
@@ -96,6 +97,20 @@ export function CouponManagement({ isLoading, coupons }: CouponManagementProps) 
         <div className="grid gap-4">
           {filteredCoupons.map((coupon) => {
             const isActive = coupon.status === 1;
+            const buildRouticketLink = () => {
+              const fallback = `https://routicket.com/cupon/ver_cupon.php?id_cupon=${coupon.id}`;
+              if (!apiPublicKey) {
+                return coupon.link || fallback;
+              }
+              try {
+                const url = new URL(coupon.link || fallback);
+                url.searchParams.set('api_public', apiPublicKey);
+                return url.toString();
+              } catch {
+                return `${fallback}&api_public=${apiPublicKey}`;
+              }
+            };
+            const routicketLink = buildRouticketLink();
             return (
               <Card key={coupon.id}>
                 <CardContent className="p-6 space-y-4">
@@ -143,9 +158,9 @@ export function CouponManagement({ isLoading, coupons }: CouponManagementProps) 
                         <p>{coupon.condiciones || 'Sin restricciones adicionales registradas.'}</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {coupon.link && (
+                        {routicketLink && (
                           <Button asChild variant="outline" size="sm" className="gap-2">
-                            <a href={coupon.link} target="_blank" rel="noopener noreferrer">
+                            <a href={routicketLink} target="_blank" rel="noopener noreferrer">
                               Ver en Routicket
                               <ArrowSquareOut className="w-4 h-4" />
                             </a>

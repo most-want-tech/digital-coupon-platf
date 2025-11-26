@@ -40,7 +40,8 @@ export function AdminDashboard({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_PUBLIC_KEY = 'PUBLIC-381bcdd45bdae032';
+  const API_PUBLIC_KEY = 'PUBLIC-d6fee5badbc6667e';
+  const API_SECRET_KEY = 'SECRET-2b5503383995adc8ffaddba8ec79f331';
   const API_USER_ID = 1427;
   const PARTNER_ID = 1427;
 
@@ -49,7 +50,9 @@ export function AdminDashboard({
     try {
       const data = await fetchRouticketCoupons({
         apiPublicKey: API_PUBLIC_KEY,
+        apiSecret: API_SECRET_KEY,
         userId: API_USER_ID,
+        partnerId: PARTNER_ID,
         signal
       });
       setApiData(data);
