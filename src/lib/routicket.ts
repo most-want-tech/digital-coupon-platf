@@ -35,7 +35,7 @@ export async function fetchRouticketCoupons({
   });
 
   if (!response.ok) {
-    throw new Error(`Error fetching coupons: ${response.stat                    us} ${response.statusText}`);
+    throw new Error(`Error fetching coupons: ${response.status} ${response.statusText}`);
   }
 
   const data = (await response.json()) as RouticketApiResponse;
