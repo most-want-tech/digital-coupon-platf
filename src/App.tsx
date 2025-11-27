@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CouponCard } from '@/components/CouponCard';
 import { AdminDashboard } from '@/components/AdminDashboard';
-import { mockBusinesses } from '@/lib/mock-data';
 import type { Business, Coupon } from '@/lib/types';
 import { Tag, Storefront } from '@phosphor-icons/react';
 import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
@@ -95,22 +94,40 @@ function App() {
     applyBrandColors(currentBrandConfig);
   }, [currentBrandConfig]);
 
-  const fallbackBusiness = mockBusinesses[0];
-  const activeBusinessId =
-    currentBrandConfig.businessId || partnerBusiness?.id || fallbackBusiness?.id || '';
+  const placeholderBusiness = useMemo<Business>(
+    () => ({
+      id: 'placeholder-business',
+      name: currentBrandConfig.platformName,
+      logo: currentBrandConfig.logoUrl || 'https://routicket.com/favicon.ico',
+      category: 'services',
+      description:
+        currentBrandConfig.tagline ||
+        'Personaliza tu cuponera digital y sincroniza tus promociones en tiempo real.',
+      address: 'No disponible',
+      hours: 'Sin horario disponible',
+      phone: 'No disponible',
+      coverImage:
+        currentBrandConfig.heroImageUrl ||
+        currentBrandConfig.logoUrl ||
+        'https://routicket.com/favicon.ico'
+    }),
+    [
+      currentBrandConfig.platformName,
+      currentBrandConfig.logoUrl,
+      currentBrandConfig.tagline,
+      currentBrandConfig.heroImageUrl
+    ]
+  );
 
-  const displayBusiness: Business | undefined = useMemo(() => {
-    if (partnerBusiness && partnerBusiness.id === activeBusinessId) {
-      return partnerBusiness;
-    }
-    return (
-      mockBusinesses.find((business) => business.id === activeBusinessId) ||
-      partnerBusiness ||
-      fallbackBusiness
-    );
-  }, [activeBusinessId, partnerBusiness, fallbackBusiness]);
+  const shouldUsePartner = useMemo(() => {
+    if (!partnerBusiness) return false;
+    const configuredBusinessId = currentBrandConfig.businessId;
+    return !configuredBusinessId || configuredBusinessId === partnerBusiness.id;
+  }, [currentBrandConfig.businessId, partnerBusiness]);
 
-  const businessCoupons = displayBusiness && displayBusiness.id === partnerBusiness?.id ? apiCoupons : [];
+  const displayBusiness: Business = (shouldUsePartner && partnerBusiness) || placeholderBusiness;
+
+  const businessCoupons = shouldUsePartner ? apiCoupons : [];
 
   if (viewMode === 'business') {
     return (
@@ -134,7 +151,9 @@ function App() {
 
   const tagline =
     currentBrandConfig.tagline ||
-    (partnerBusiness ? `Explora promociones exclusivas de ${partnerBusiness.name}.` : 'Explora ofertas exclusivas de negocios locales en tu comunidad.');
+    (shouldUsePartner && partnerBusiness
+      ? `Explora promociones exclusivas de ${partnerBusiness.name}.`
+      : 'Explora ofertas exclusivas de negocios locales en tu comunidad.');
 
   return (
     <div className="min-h-screen" style={backgroundStyle}>
@@ -183,7 +202,7 @@ function App() {
           )}
           <div className="relative z-10 p-10 sm:p-16 bg-linear-to-r from-background/90 via-background/85 to-background/60">
             <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-              {displayBusiness?.name || currentBrandConfig.platformName}
+              {displayBusiness.name || currentBrandConfig.platformName}
             </p>
             <h2 className="mt-4 text-3xl sm:text-4xl font-bold max-w-2xl leading-tight">
               {currentBrandConfig.platformName}
@@ -245,12 +264,7 @@ function App() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {businessCoupons.map((coupon) => (
-                <CouponCard
-                  key={coupon.id}
-                  coupon={coupon}
-                  business={displayBusiness!}
-                  showActions={false}
-                />
+                <CouponCard key={coupon.id} coupon={coupon} business={displayBusiness} showActions={false} />
               ))}
             </div>
           )}
