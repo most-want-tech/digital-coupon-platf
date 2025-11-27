@@ -7,6 +7,7 @@ interface UseRouticketDataOptions {
   apiSecret?: string;
   userId?: number | string;
   partnerId?: number | string;
+  useDemoData?: boolean;
 }
 
 interface UseRouticketDataResult {
@@ -18,7 +19,7 @@ interface UseRouticketDataResult {
 }
 
 export function useRouticketData(options: UseRouticketDataOptions): UseRouticketDataResult {
-  const { apiPublicKey, apiSecret, userId, partnerId } = options;
+  const { apiPublicKey, apiSecret, userId, partnerId, useDemoData } = options;
   const [data, setData] = useState<RouticketApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,8 @@ export function useRouticketData(options: UseRouticketDataOptions): UseRouticket
           apiSecret,
           userId,
           partnerId,
-          signal
+          signal,
+          useDemoData
         });
         setData(response);
         setError(null);
@@ -48,7 +50,7 @@ export function useRouticketData(options: UseRouticketDataOptions): UseRouticket
         }
       }
     },
-    [apiPublicKey, apiSecret, userId, partnerId]
+    [apiPublicKey, apiSecret, userId, partnerId, useDemoData]
   );
 
   useEffect(() => {
