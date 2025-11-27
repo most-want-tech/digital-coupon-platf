@@ -115,18 +115,21 @@ export function CouponCard({
                   {isRedeemed ? 'Canjeado' : 'Canjear'}
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(`https://routicket.com/cupon/?id_cupon=${coupon.id}`, '_blank', 'noopener,noreferrer');
-                }}
-                className="gap-1"
-              >
-                <span>Ver en Routicket</span>
-                <ArrowSquareOut className="w-3.5 h-3.5" />
-              </Button>
+              {!showActions && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const sanitizedId = encodeURIComponent(coupon.id);
+                    window.open(`https://routicket.com/cupon/?id_cupon=${sanitizedId}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="gap-1"
+                >
+                  <span>Ver en Routicket</span>
+                  <ArrowSquareOut className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
