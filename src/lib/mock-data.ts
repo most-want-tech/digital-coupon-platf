@@ -78,7 +78,7 @@ export const mockCoupons: Coupon[] = [
     discount: 'GRATIS',
     image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&h=400&fit=crop',
     terms: 'Válido para comer aquí o llevar. Un cupón por cliente por visita. No acumulable con otras ofertas. Solo café tamaño regular.',
-    expiryDate: '2025-03-31',
+    expiryDate: '2026-03-31',
     category: 'food',
     redemptionCode: 'CAFE-GRATIS-001',
     isNew: true
@@ -91,7 +91,7 @@ export const mockCoupons: Coupon[] = [
     discount: '20% OFF',
     image: 'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600&h=400&fit=crop',
     terms: 'Válido de Lunes a Viernes 11am-2pm. Excluye bebidas. Solo para comer aquí.',
-    expiryDate: '2025-04-15',
+    expiryDate: '2026-04-15',
     category: 'food',
     redemptionCode: 'CAFE-ALMUERZO-002'
   },
@@ -103,7 +103,7 @@ export const mockCoupons: Coupon[] = [
     discount: '50% OFF',
     image: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=400&fit=crop',
     terms: 'Solo nuevos miembros. Requiere compromiso mínimo de 3 meses. Incluye todas las clases grupales y acceso a instalaciones.',
-    expiryDate: '2025-03-25',
+    expiryDate: '2026-03-25',
     category: 'services',
     redemptionCode: 'FIT-NUEVO-003',
     isNew: true
@@ -116,7 +116,7 @@ export const mockCoupons: Coupon[] = [
     discount: 'GRATIS',
     image: 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=600&h=400&fit=crop',
     terms: 'Solo miembros activos o con pase de prueba. Debe programarse con anticipación. Uno por cliente.',
-    expiryDate: '2025-04-30',
+    expiryDate: '2026-04-30',
     category: 'services',
     redemptionCode: 'FIT-ENTRENA-004'
   },
@@ -128,7 +128,7 @@ export const mockCoupons: Coupon[] = [
     discount: '2x1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?w=600&h=400&fit=crop',
     terms: 'El artículo gratis debe ser de igual o menor valor. Solo accesorios, excluye bolsos de más de $50.',
-    expiryDate: '2025-03-20',
+    expiryDate: '2026-03-20',
     category: 'retail',
     redemptionCode: 'ESTILO-ACC-005'
   },
@@ -140,7 +140,7 @@ export const mockCoupons: Coupon[] = [
     discount: '30% OFF',
     image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&h=400&fit=crop',
     terms: 'Válido solo en artículos de la colección de primavera. No acumulable con otros descuentos. Hasta agotar existencias.',
-    expiryDate: '2025-04-10',
+    expiryDate: '2026-04-10',
     category: 'retail',
     redemptionCode: 'ESTILO-PRIMAVERA-006',
     isNew: true
@@ -153,7 +153,7 @@ export const mockCoupons: Coupon[] = [
     discount: '2x1',
     image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&h=400&fit=crop',
     terms: 'Válido solo de Lunes a Jueves. Excluye fin de semana de estreno para nuevos lanzamientos y eventos especiales. Sujeto a disponibilidad.',
-    expiryDate: '2025-04-30',
+    expiryDate: '2026-04-30',
     category: 'entertainment',
     redemptionCode: 'CINE-PELI-007'
   },
@@ -165,7 +165,7 @@ export const mockCoupons: Coupon[] = [
     discount: 'GRATIS',
     image: 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=600&h=400&fit=crop',
     terms: 'Una por entrada. No se puede canjear por otros artículos de concesión. Válido solo para compras en el cine.',
-    expiryDate: '2025-03-28',
+    expiryDate: '2025-12-28',
     category: 'entertainment',
     redemptionCode: 'CINE-PALOMITAS-008',
     isNew: true
@@ -178,7 +178,7 @@ export const mockCoupons: Coupon[] = [
     discount: '25% OFF',
     image: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=600&h=400&fit=crop',
     terms: 'Válido Martes-Jueves después de las 5pm. Excluye bebidas alcohólicas. Descuento máximo $50. Se recomienda reservar.',
-    expiryDate: '2025-04-20',
+    expiryDate: '2026-04-20',
     category: 'food',
     redemptionCode: 'BELLA-CENA-009'
   },
@@ -190,7 +190,7 @@ export const mockCoupons: Coupon[] = [
     discount: 'GRATIS',
     image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&h=400&fit=crop',
     terms: 'Solo para comer aquí. Un postre por plato fuerte ordenado. No se puede compartir ni llevar.',
-    expiryDate: '2025-03-31',
+    expiryDate: '2026-03-31',
     category: 'food',
     redemptionCode: 'BELLA-POSTRE-010'
   },
@@ -202,7 +202,7 @@ export const mockCoupons: Coupon[] = [
     discount: '$100 OFF',
     image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=400&fit=crop',
     terms: 'Compra mínima $500. No acumulable con artículos en liquidación. Excluye modelos reacondicionados.',
-    expiryDate: '2025-04-15',
+    expiryDate: '2026-04-15',
     category: 'retail',
     redemptionCode: 'TECH-LAPTOP-011',
     isNew: true
@@ -215,7 +215,7 @@ export const mockCoupons: Coupon[] = [
     discount: 'GRATIS',
     image: 'https://images.unsplash.com/photo-1558089687-f282ffcbc126?w=600&h=400&fit=crop',
     terms: 'Válido para dispositivos de hogar inteligente de $200+. Instalación dentro de 30 millas de la tienda. Programado dentro de 7 días de la compra.',
-    expiryDate: '2025-04-30',
+    expiryDate: '2026-04-30',
     category: 'retail',
     redemptionCode: 'TECH-INSTAL-012'
   }
