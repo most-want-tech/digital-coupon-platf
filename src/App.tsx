@@ -277,41 +277,48 @@ function CustomerView() {
 
       <main className="container mx-auto px-6 py-10 space-y-10">
         <section className="relative overflow-hidden rounded-3xl border bg-card text-card-foreground">
-          <EditableElement
-            elementConfig={{
-              elementId: 'hero-image',
-              elementLabel: 'Imagen de héroe',
-              elementType: 'image',
-              category: 'hero',
-              properties: [
-                {
-                  id: 'url',
-                  label: 'URL de imagen',
-                  type: 'image',
-                  value: getCustomization('hero-image', 'url', currentBrandConfig.heroImageUrl || '')
-                },
-                {
-                  id: 'opacity',
-                  label: 'Opacidad',
-                  type: 'number',
-                  value: getCustomization('hero-image', 'opacity', 80),
-                  min: 0,
-                  max: 100,
-                  step: 5,
-                  unit: '%'
-                }
-              ]
-            }}
-          >
-            {(getCustomization('hero-image', 'url', currentBrandConfig.heroImageUrl || '')) && (
-              <img
-                src={getCustomization('hero-image', 'url', currentBrandConfig.heroImageUrl || '') as string}
-                alt="Imagen promocional"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ opacity: (getCustomization('hero-image', 'opacity', 80) as number) / 100 }}
-              />
-            )}
-          </EditableElement>
+          {(() => {
+            const heroImageUrl = getCustomization('hero-image', 'url', currentBrandConfig.heroImageUrl || '');
+            const heroImageOpacity = getCustomization('hero-image', 'opacity', 80);
+            
+            return (
+              <EditableElement
+                elementConfig={{
+                  elementId: 'hero-image',
+                  elementLabel: 'Imagen de héroe',
+                  elementType: 'image',
+                  category: 'hero',
+                  properties: [
+                    {
+                      id: 'url',
+                      label: 'URL de imagen',
+                      type: 'image',
+                      value: heroImageUrl
+                    },
+                    {
+                      id: 'opacity',
+                      label: 'Opacidad',
+                      type: 'number',
+                      value: heroImageOpacity,
+                      min: 0,
+                      max: 100,
+                      step: 5,
+                      unit: '%'
+                    }
+                  ]
+                }}
+              >
+                {heroImageUrl && (
+                  <img
+                    src={heroImageUrl as string}
+                    alt="Imagen promocional"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ opacity: (heroImageOpacity as number) / 100 }}
+                  />
+                )}
+              </EditableElement>
+            );
+          })()}
           <div className="relative z-10 p-10 sm:p-16 bg-linear-to-r from-background/90 via-background/85 to-background/60">
             <EditableElement
               elementConfig={{
