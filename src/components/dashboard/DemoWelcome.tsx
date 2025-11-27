@@ -14,7 +14,7 @@ interface DemoWelcomeProps {
 
 export function DemoWelcome({ onDismiss }: DemoWelcomeProps) {
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+    <Card className="border-primary/20 bg-linear-to-br from-primary/5 to-transparent">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ export function DemoWelcome({ onDismiss }: DemoWelcomeProps) {
       <CardContent className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
           <div className="flex gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" weight="fill" />
+            <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" weight="fill" />
             <div>
               <p className="font-medium text-sm">Real-Time Analytics</p>
               <p className="text-xs text-muted-foreground">
@@ -56,7 +56,7 @@ export function DemoWelcome({ onDismiss }: DemoWelcomeProps) {
             </div>
           </div>
           <div className="flex gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" weight="fill" />
+            <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" weight="fill" />
             <div>
               <p className="font-medium text-sm">Full CRUD Operations</p>
               <p className="text-xs text-muted-foreground">
@@ -65,7 +65,7 @@ export function DemoWelcome({ onDismiss }: DemoWelcomeProps) {
             </div>
           </div>
           <div className="flex gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" weight="fill" />
+            <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" weight="fill" />
             <div>
               <p className="font-medium text-sm">White-Label Branding</p>
               <p className="text-xs text-muted-foreground">
@@ -74,7 +74,7 @@ export function DemoWelcome({ onDismiss }: DemoWelcomeProps) {
             </div>
           </div>
           <div className="flex gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" weight="fill" />
+            <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" weight="fill" />
             <div>
               <p className="font-medium text-sm">API Integration Ready</p>
               <p className="text-xs text-muted-foreground">

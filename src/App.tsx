@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CouponCard } from '@/components/CouponCard';

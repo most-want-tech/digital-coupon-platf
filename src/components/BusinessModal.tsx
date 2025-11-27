@@ -33,7 +33,7 @@ export function BusinessModal({ business, coupons, open, onClose, onCouponClick 
             alt={business.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-4 left-6 flex items-end gap-4">
             <Avatar className="w-20 h-20 border-4 border-background shadow-xl">
               <AvatarImage src={business.logo} alt={business.name} />
