@@ -139,7 +139,6 @@ function App() {
         onBrandConfigUpdate={setBrandConfigs}
         apiData={apiData}
         partnerId={PARTNER_ID}
-        apiPublicKey={API_PUBLIC_KEY}
         isLoading={isApiLoading}
         error={apiError}
         onRefresh={refreshApi}

@@ -46,7 +46,6 @@ export function Analytics({ isLoading, stats, coupons }: AnalyticsProps) {
   }));
 
   const totals = stats?.totals;
-  const averages = stats?.averages;
   const dates = stats?.dates;
 
   if (!stats && !isLoading) {

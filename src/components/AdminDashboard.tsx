@@ -31,7 +31,6 @@ interface AdminDashboardProps {
   ) => void;
   apiData: RouticketApiResponse | null;
   partnerId: number;
-  apiPublicKey: string;
   isLoading: boolean;
   error: string | null;
   onRefresh: () => void;
@@ -43,7 +42,6 @@ export function AdminDashboard({
   onBrandConfigUpdate,
   apiData,
   partnerId,
-  apiPublicKey,
   isLoading,
   error,
   onRefresh
@@ -215,7 +213,6 @@ export function AdminDashboard({
             <CouponManagement
               isLoading={isLoading}
               coupons={partnerCoupons}
-              apiPublicKey={apiPublicKey}
             />
           </TabsContent>
 
