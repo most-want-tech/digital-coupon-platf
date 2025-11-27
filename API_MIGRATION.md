@@ -43,6 +43,9 @@ Create a `.env.local` file for local development:
 ```bash
 # Enable demo mode (uses mock data)
 NEXT_PUBLIC_USE_DEMO_DATA=true
+
+# Optional: Set custom base URL for API routes (defaults to localhost:3000)
+# NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 ```
 
 For production, set to `false` or omit the variable:
@@ -50,6 +53,15 @@ For production, set to `false` or omit the variable:
 ```bash
 # Use real API calls
 NEXT_PUBLIC_USE_DEMO_DATA=false
+
+# Set your production base URL
+NEXT_PUBLIC_BASE_URL=https://yourdomain.com
+
+# Configure your API credentials
+NEXT_PUBLIC_API_PUBLIC_KEY=your-public-key
+NEXT_PUBLIC_API_SECRET_KEY=your-secret-key
+NEXT_PUBLIC_PARTNER_ID=your-partner-id
+NEXT_PUBLIC_USER_ID=your-user-id
 ```
 
 See `.env.example` for all available configuration options.
@@ -112,11 +124,12 @@ GET /api/coupons?api_public=PUBLIC-xxx&api_secret=SECRET-xxx&id_partner=1427
 ## Benefits
 
 1. **Development Efficiency**: No API quota consumption during development
-2. **Server-Side Caching**: Responses cached for 5 minutes in production
+2. **Server-Side Caching**: Responses cached for 30 minutes in production
 3. **Better Error Handling**: Centralized error handling in API routes
 4. **Security**: API credentials not exposed in client-side code
 5. **Flexibility**: Easy to switch between demo and production modes
 6. **Testing**: Mock data allows for consistent testing scenarios
+7. **Code Quality**: Shared utility functions for better maintainability
 
 ## Mock Data
 
@@ -148,6 +161,26 @@ You can customize the mock data to match your testing needs.
 ### Issue: Changes not reflecting
 **Solution**: Restart the Next.js dev server after changing environment variables.
 
+## Utility Functions
+
+The migration includes shared utility functions for better code organization:
+
+### `isDemoModeEnabled()`
+```typescript
+import { isDemoModeEnabled } from '@/lib/routicket';
+
+if (isDemoModeEnabled()) {
+  // Use mock data
+}
+```
+
+Checks if demo mode is enabled via the `NEXT_PUBLIC_USE_DEMO_DATA` environment variable.
+
+### `getApiBaseUrl()`
+Internal utility that determines the correct base URL for API calls:
+- In browser: uses `window.location.origin`
+- In server: uses `NEXT_PUBLIC_BASE_URL` or defaults to `http://localhost:3000`
+
 ## Future Enhancements
 
 - Add more mock data scenarios
@@ -155,3 +188,4 @@ You can customize the mock data to match your testing needs.
 - Add response compression
 - Support for additional API endpoints
 - Add API key validation middleware
+- Add API response versioning
