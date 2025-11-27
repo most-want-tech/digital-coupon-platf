@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { RouticketApiResponse } from '@/lib/types';
+import { isDemoModeEnabled } from '@/lib/routicket';
 import mockCoupons from '@/data/mock-coupons.json';
 
 const ROUTICKET_ENDPOINT = 'https://routicket.com/cuponera/cancun/api_cupones.php';
+const CACHE_REVALIDATE_SECONDS = 1800; // 30 minutes
 
 /**
  * Next.js API route for fetching Routicket coupons
@@ -18,7 +20,7 @@ const ROUTICKET_ENDPOINT = 'https://routicket.com/cuponera/cancun/api_cupones.ph
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const isDemoMode = searchParams.get('demo') === 'true' || process.env.NEXT_PUBLIC_USE_DEMO_DATA === 'true';
+    const isDemoMode = searchParams.get('demo') === 'true' || isDemoModeEnabled();
 
     // If demo mode is enabled, return mock data
     if (isDemoMode) {
@@ -70,8 +72,8 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(url.toString(), {
       method: 'GET',
-      // Add cache control for production
-      next: { revalidate: 300 } // Revalidate every 5 minutes
+      // Add cache control for production - revalidate every 30 minutes
+      next: { revalidate: CACHE_REVALIDATE_SECONDS }
     });
 
     if (!response.ok) {

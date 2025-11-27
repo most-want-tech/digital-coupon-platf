@@ -19,6 +19,25 @@ interface FetchCouponsOptions {
  * - Centralized API configuration
  * - Better error handling
  */
+/**
+ * Determines the base URL for API calls
+ * In browser: uses current origin
+ * In server: uses NEXT_PUBLIC_BASE_URL or defaults to localhost
+ */
+function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+}
+
+/**
+ * Checks if demo mode is enabled via environment variable
+ */
+export function isDemoModeEnabled(): boolean {
+  return typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_USE_DEMO_DATA === 'true';
+}
+
 export async function fetchRouticketCoupons({
   apiPublicKey,
   userId,
@@ -28,14 +47,10 @@ export async function fetchRouticketCoupons({
   useDemoData
 }: FetchCouponsOptions): Promise<RouticketApiResponse> {
   // Build URL for Next.js API route
-  const url = new URL('/api/coupons', 
-    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
-  );
+  const url = new URL('/api/coupons', getApiBaseUrl());
   
   // Check if demo mode is enabled via env var or parameter
-  const isDemoMode = useDemoData ?? (
-    typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_USE_DEMO_DATA === 'true'
-  );
+  const isDemoMode = useDemoData ?? isDemoModeEnabled();
   
   if (isDemoMode) {
     url.searchParams.set('demo', 'true');
