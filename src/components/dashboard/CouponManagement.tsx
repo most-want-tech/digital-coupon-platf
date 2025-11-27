@@ -97,20 +97,12 @@ export function CouponManagement({ isLoading, coupons, apiPublicKey }: CouponMan
         <div className="grid gap-4">
           {filteredCoupons.map((coupon) => {
             const isActive = coupon.status === 1;
-            const buildRouticketLink = () => {
-              const fallback = `https://routicket.com/cupon/ver_cupon.php?id_cupon=${coupon.id}`;
-              if (!apiPublicKey) {
-                return coupon.link || fallback;
-              }
-              try {
-                const url = new URL(coupon.link || fallback);
-                url.searchParams.set('api_public', apiPublicKey);
-                return url.toString();
-              } catch {
-                return `${fallback}&api_public=${apiPublicKey}`;
-              }
+            const buildRouticketViewLink = () => {
+              const url = new URL('https://routicket.com/cupones/infoCupon.php');
+              url.searchParams.set('id_cupon', String(coupon.id));
+              return url.toString();
             };
-            const routicketLink = buildRouticketLink();
+            const routicketViewLink = buildRouticketViewLink();
             return (
               <Card key={coupon.id}>
                 <CardContent className="p-6 space-y-4">
@@ -158,9 +150,9 @@ export function CouponManagement({ isLoading, coupons, apiPublicKey }: CouponMan
                         <p>{coupon.condiciones || 'Sin restricciones adicionales registradas.'}</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {routicketLink && (
+                        {routicketViewLink && (
                           <Button asChild variant="outline" size="sm" className="gap-2">
-                            <a href={routicketLink} target="_blank" rel="noopener noreferrer">
+                            <a href={routicketViewLink} target="_blank" rel="noopener noreferrer">
                               Ver en Routicket
                               <ArrowSquareOut className="w-4 h-4" />
                             </a>
