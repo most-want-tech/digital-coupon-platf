@@ -1,39 +1,46 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { EditableCouponCard } from '@/components/EditableCouponCard';
+import { Storefront, Tag } from '@phosphor-icons/react';
 import { AdminDashboard } from '@/components/AdminDashboard';
-import type { Business, Coupon } from '@/lib/types';
-import { Tag, Storefront } from '@phosphor-icons/react';
-import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
+import { EditableCouponCard } from '@/components/EditableCouponCard';
+import { FloatingPersonalizationPanel } from '@/components/personalization/FloatingPersonalizationPanel';
+import { EditableElement } from '@/components/personalization/EditableElement';
+import { PersonalizationModeToggle } from '@/components/personalization/PersonalizationModeToggle';
+import { Button } from '@/components/ui/button';
+import { PersonalizationProvider, usePersonalization } from '@/contexts/PersonalizationContext';
 import { useBrandConfigs } from '@/hooks/use-brand-configs';
 import { useRouticketData } from '@/hooks/use-routicket-data';
-import { PersonalizationProvider } from '@/contexts/PersonalizationContext';
-import { EditableElement, FloatingPersonalizationPanel, PersonalizationModeToggle } from '@/components/personalization';
-import { usePersonalization } from '@/contexts/PersonalizationContext';
-import type { EditableElementConfig } from '@/lib/personalization-types';
+import { applyBrandColors, defaultBrandConfig } from '@/lib/brand-config';
 import { mockBusiness, mockCoupons } from '@/lib/mock-data';
+import type { Business, BrandConfig, Coupon } from '@/lib/types';
+import type { EditableElementConfig } from '@/lib/personalization-types';
+import { buildTextProperties, buildTextStyles } from '@/lib/personalization-text';
 
-const API_PUBLIC_KEY = 'PUBLIC-d6fee5badbc6667e';
-const API_SECRET_KEY = 'SECRET-2b5503383995adc8ffaddba8ec79f331';
-const PARTNER_ID = 1427;
-const USER_ID = 1427;
+const API_PUBLIC_KEY = process.env.NEXT_PUBLIC_API_PUBLIC_KEY ?? 'demo-public-key';
+const API_SECRET_KEY = process.env.NEXT_PUBLIC_API_SECRET_KEY ?? 'demo-secret-key';
+const USER_ID = process.env.NEXT_PUBLIC_USER_ID ?? 'demo-user';
+const PARTNER_ID = process.env.NEXT_PUBLIC_PARTNER_ID ?? '1427';
+const USE_DEMO_DATA = process.env.NEXT_PUBLIC_USE_DEMO_DATA === 'true';
 
-const normalizeDate = (value?: string) => {
-  if (!value || value === '0000-00-00') {
-    const future = new Date();
-    future.setDate(future.getDate() + 30);
-    return future.toISOString();
+function normalizeDate(value?: string | number | Date | null) {
+  if (!value) {
+    return new Date().toISOString();
   }
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    const future = new Date();
-    future.setDate(future.getDate() + 30);
-    return future.toISOString();
+    return new Date().toISOString();
   }
   return parsed.toISOString();
-};
+}
+
+function getPrimaryBrandConfig(brandConfigs: Record<string, BrandConfig> | undefined) {
+  if (brandConfigs && Object.keys(brandConfigs).length > 0) {
+    const [firstKey] = Object.keys(brandConfigs);
+    return brandConfigs[firstKey];
+  }
+  return defaultBrandConfig;
+}
 
 function CustomerView() {
   const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
@@ -50,7 +57,8 @@ function CustomerView() {
     apiPublicKey: API_PUBLIC_KEY,
     apiSecret: API_SECRET_KEY,
     userId: USER_ID,
-    partnerId: PARTNER_ID
+    partnerId: PARTNER_ID,
+    useDemoData: USE_DEMO_DATA
   });
 
   const partnerBusiness: Business | undefined = useMemo(() => {
@@ -58,7 +66,7 @@ function CustomerView() {
     if (!firstCoupon) return undefined;
     return {
       id: `partner-${PARTNER_ID}`,
-      name: firstCoupon.text?.trim() || `Partner ${PARTNER_ID}`,
+      name: firstCoupon.text?.trim() || firstCoupon.titulo || `Partner ${PARTNER_ID}`,
       logo: firstCoupon.foto_post || firstCoupon.foto || 'https://routicket.com/favicon.ico',
       category: 'services',
       description: apiData?.api_usage?.note || 'Ofertas sincronizadas automáticamente desde Routicket.',
@@ -90,13 +98,10 @@ function CustomerView() {
     }));
   }, [partnerBusiness, partnerCoupons]);
 
-  const currentBrandConfig = useMemo(() => {
-    if (brandConfigs && Object.keys(brandConfigs).length > 0) {
-      const firstKey = Object.keys(brandConfigs)[0];
-      return brandConfigs[firstKey];
-    }
-    return defaultBrandConfig;
-  }, [brandConfigs]);
+  const currentBrandConfig = useMemo(
+    () => getPrimaryBrandConfig(brandConfigs),
+    [brandConfigs]
+  );
 
   useEffect(() => {
     applyBrandColors(currentBrandConfig);
@@ -135,16 +140,13 @@ function CustomerView() {
 
   const displayBusiness: Business = (shouldUsePartner && partnerBusiness) || placeholderBusiness;
 
-  // Use mock coupons when API fails or returns empty (for development/demo purposes)
   const businessCoupons = useMemo(() => {
     if (shouldUsePartner && apiCoupons.length > 0) {
       return apiCoupons;
     }
-    // Return mock coupons when no API data is available
     return mockCoupons;
   }, [shouldUsePartner, apiCoupons]);
 
-  // Use mock business when displaying mock coupons
   const effectiveBusiness = businessCoupons === mockCoupons ? mockBusiness : displayBusiness;
 
   if (viewMode === 'business') {
@@ -177,30 +179,12 @@ function CustomerView() {
     elementLabel: 'Título del encabezado',
     elementType: 'text',
     category: 'header',
-    properties: [
-      {
-        id: 'text',
-        label: 'Texto',
-        type: 'text',
-        value: getCustomization('header-title', 'text', currentBrandConfig.platformName)
-      },
-      {
-        id: 'fontSize',
-        label: 'Tamaño de fuente',
-        type: 'fontSize',
-        value: getCustomization('header-title', 'fontSize', 24),
-        min: 16,
-        max: 48,
-        step: 1,
-        unit: 'px'
-      },
-      {
-        id: 'color',
-        label: 'Color',
-        type: 'color',
-        value: getCustomization('header-title', 'color', '#000000')
-      }
-    ]
+    properties: buildTextProperties(
+      getCustomization,
+      'header-title',
+      { defaultValue: 24, min: 16, max: 48, step: 1 },
+      '#111827'
+    )
   };
 
   const headerTaglineConfig: EditableElementConfig = {
@@ -208,30 +192,53 @@ function CustomerView() {
     elementLabel: 'Subtítulo del encabezado',
     elementType: 'text',
     category: 'header',
-    properties: [
-      {
-        id: 'text',
-        label: 'Texto',
-        type: 'text',
-        value: getCustomization('header-tagline', 'text', tagline)
-      },
-      {
-        id: 'fontSize',
-        label: 'Tamaño de fuente',
-        type: 'fontSize',
-        value: getCustomization('header-tagline', 'fontSize', 12),
-        min: 10,
-        max: 24,
-        step: 1,
-        unit: 'px'
-      }
-    ]
+    properties: buildTextProperties(
+      getCustomization,
+      'header-tagline',
+      { defaultValue: 12, min: 10, max: 24, step: 1 },
+      '#6b7280'
+    )
   };
+
+  const headerTitleStyle = buildTextStyles(getCustomization, 'header-title', {
+    fontSize: 24,
+    color: '#111827'
+  });
+  const headerTaglineStyle = buildTextStyles(getCustomization, 'header-tagline', {
+    fontSize: 12,
+    color: '#6b7280'
+  });
+  const heroSubtitleStyle = buildTextStyles(getCustomization, 'hero-subtitle', { fontSize: 14 });
+  const heroTitleStyle = buildTextStyles(getCustomization, 'hero-title', { fontSize: 36 });
+  const heroDescriptionStyle = buildTextStyles(getCustomization, 'hero-description', {
+    fontSize: 16,
+    color: '#4b5563'
+  });
+  const heroPrimaryButtonStyle = buildTextStyles(
+    getCustomization,
+    'hero-primary-button',
+    { fontSize: 16 },
+    { highlightBackground: false }
+  );
+  const heroSecondaryButtonStyle = buildTextStyles(
+    getCustomization,
+    'hero-secondary-button',
+    { fontSize: 16 },
+    { highlightBackground: false }
+  );
+  const sectionTitleStyle = buildTextStyles(getCustomization, 'section-title', {
+    fontSize: 24,
+    color: '#111827'
+  });
+  const sectionDescriptionStyle = buildTextStyles(getCustomization, 'section-description', {
+    fontSize: 16,
+    color: '#6b7280'
+  });
 
   return (
     <div className="min-h-screen" style={backgroundStyle}>
       <FloatingPersonalizationPanel />
-      
+
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -248,24 +255,19 @@ function CustomerView() {
             )}
             <div>
               <EditableElement elementConfig={headerTitleConfig}>
-                <h1 
+                <h1
                   className="text-2xl font-bold tracking-tight"
-                  style={{
-                    fontSize: `${getCustomization('header-title', 'fontSize', 24)}px`,
-                    color: getCustomization('header-title', 'color', '') || undefined
-                  }}
+                  style={headerTitleStyle}
                 >
-                  {getCustomization('header-title', 'text', currentBrandConfig.platformName)}
+                  {currentBrandConfig.platformName}
                 </h1>
               </EditableElement>
               <EditableElement elementConfig={headerTaglineConfig}>
-                <p 
+                <p
                   className="text-xs text-muted-foreground"
-                  style={{
-                    fontSize: `${getCustomization('header-tagline', 'fontSize', 12)}px`
-                  }}
+                  style={headerTaglineStyle}
                 >
-                  {getCustomization('header-tagline', 'text', tagline)}
+                  {tagline}
                 </p>
               </EditableElement>
             </div>
@@ -289,9 +291,13 @@ function CustomerView() {
       <main className="container mx-auto px-6 py-10 space-y-10">
         <section className="relative overflow-hidden rounded-3xl border bg-card text-card-foreground">
           {(() => {
-            const heroImageUrl = getCustomization('hero-image', 'url', currentBrandConfig.heroImageUrl || '');
+            const heroImageUrl = getCustomization(
+              'hero-image',
+              'url',
+              currentBrandConfig.heroImageUrl || ''
+            );
             const heroImageOpacity = getCustomization('hero-image', 'opacity', 80);
-            
+
             return (
               <EditableElement
                 elementConfig={{
@@ -337,31 +343,19 @@ function CustomerView() {
                 elementLabel: 'Subtítulo del héroe',
                 elementType: 'text',
                 category: 'hero',
-                properties: [
-                  {
-                    id: 'text',
-                    label: 'Texto',
-                    type: 'text',
-                    value: getCustomization('hero-subtitle', 'text', displayBusiness.name || currentBrandConfig.platformName)
-                  },
-                  {
-                    id: 'fontSize',
-                    label: 'Tamaño de fuente',
-                    type: 'fontSize',
-                    value: getCustomization('hero-subtitle', 'fontSize', 14),
-                    min: 10,
-                    max: 24,
-                    step: 1,
-                    unit: 'px'
-                  }
-                ]
+                properties: buildTextProperties(getCustomization, 'hero-subtitle', {
+                  defaultValue: 14,
+                  min: 10,
+                  max: 24,
+                  step: 1
+                })
               }}
             >
-              <p 
+              <p
                 className="text-sm font-semibold uppercase tracking-wide text-accent"
-                style={{ fontSize: `${getCustomization('hero-subtitle', 'fontSize', 14)}px` }}
+                style={heroSubtitleStyle}
               >
-                {getCustomization('hero-subtitle', 'text', displayBusiness.name || currentBrandConfig.platformName)}
+                {displayBusiness.name || currentBrandConfig.platformName}
               </p>
             </EditableElement>
             <EditableElement
@@ -370,31 +364,19 @@ function CustomerView() {
                 elementLabel: 'Título del héroe',
                 elementType: 'text',
                 category: 'hero',
-                properties: [
-                  {
-                    id: 'text',
-                    label: 'Texto',
-                    type: 'text',
-                    value: getCustomization('hero-title', 'text', currentBrandConfig.platformName)
-                  },
-                  {
-                    id: 'fontSize',
-                    label: 'Tamaño de fuente',
-                    type: 'fontSize',
-                    value: getCustomization('hero-title', 'fontSize', 36),
-                    min: 24,
-                    max: 72,
-                    step: 2,
-                    unit: 'px'
-                  }
-                ]
+                properties: buildTextProperties(getCustomization, 'hero-title', {
+                  defaultValue: 36,
+                  min: 24,
+                  max: 72,
+                  step: 2
+                })
               }}
             >
-              <h2 
+              <h2
                 className="mt-4 text-3xl sm:text-4xl font-bold max-w-2xl leading-tight"
-                style={{ fontSize: `${getCustomization('hero-title', 'fontSize', 36)}px` }}
+                style={heroTitleStyle}
               >
-                {getCustomization('hero-title', 'text', currentBrandConfig.platformName)}
+                {currentBrandConfig.platformName}
               </h2>
             </EditableElement>
             <EditableElement
@@ -403,31 +385,19 @@ function CustomerView() {
                 elementLabel: 'Descripción del héroe',
                 elementType: 'text',
                 category: 'hero',
-                properties: [
-                  {
-                    id: 'text',
-                    label: 'Texto',
-                    type: 'text',
-                    value: getCustomization('hero-description', 'text', tagline)
-                  },
-                  {
-                    id: 'fontSize',
-                    label: 'Tamaño de fuente',
-                    type: 'fontSize',
-                    value: getCustomization('hero-description', 'fontSize', 16),
-                    min: 12,
-                    max: 24,
-                    step: 1,
-                    unit: 'px'
-                  }
-                ]
+                properties: buildTextProperties(getCustomization, 'hero-description', {
+                  defaultValue: 16,
+                  min: 12,
+                  max: 24,
+                  step: 1
+                })
               }}
             >
-              <p 
+              <p
                 className="mt-4 max-w-2xl text-base text-muted-foreground"
-                style={{ fontSize: `${getCustomization('hero-description', 'fontSize', 16)}px` }}
+                style={heroDescriptionStyle}
               >
-                {getCustomization('hero-description', 'text', tagline)}
+                {tagline}
               </p>
             </EditableElement>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -437,18 +407,16 @@ function CustomerView() {
                   elementLabel: 'Botón primario',
                   elementType: 'button',
                   category: 'button',
-                  properties: [
-                    {
-                      id: 'text',
-                      label: 'Texto',
-                      type: 'text',
-                      value: getCustomization('hero-primary-button', 'text', currentBrandConfig.primaryButtonLabel || 'Ver cupones destacados')
-                    }
-                  ]
+                  properties: buildTextProperties(getCustomization, 'hero-primary-button', {
+                    defaultValue: 16,
+                    min: 12,
+                    max: 24,
+                    step: 1
+                  })
                 }}
               >
-                <Button size="lg" className="px-6">
-                  {getCustomization('hero-primary-button', 'text', currentBrandConfig.primaryButtonLabel || 'Ver cupones destacados')}
+                <Button size="lg" className="px-6" style={heroPrimaryButtonStyle}>
+                  {currentBrandConfig.primaryButtonLabel || 'Ver cupones destacados'}
                 </Button>
               </EditableElement>
               <EditableElement
@@ -457,23 +425,22 @@ function CustomerView() {
                   elementLabel: 'Botón secundario',
                   elementType: 'button',
                   category: 'button',
-                  properties: [
-                    {
-                      id: 'text',
-                      label: 'Texto',
-                      type: 'text',
-                      value: getCustomization('hero-secondary-button', 'text', currentBrandConfig.secondaryButtonLabel || 'Personalizar experiencia')
-                    }
-                  ]
+                  properties: buildTextProperties(getCustomization, 'hero-secondary-button', {
+                    defaultValue: 16,
+                    min: 12,
+                    max: 24,
+                    step: 1
+                  })
                 }}
               >
                 <Button
                   variant="outline"
                   size="lg"
                   className="px-6"
+                  style={heroSecondaryButtonStyle}
                   onClick={() => setViewMode('business')}
                 >
-                  {getCustomization('hero-secondary-button', 'text', currentBrandConfig.secondaryButtonLabel || 'Personalizar experiencia')}
+                  {currentBrandConfig.secondaryButtonLabel || 'Personalizar experiencia'}
                 </Button>
               </EditableElement>
             </div>
@@ -488,31 +455,19 @@ function CustomerView() {
                 elementLabel: 'Título de sección',
                 elementType: 'text',
                 category: 'text',
-                properties: [
-                  {
-                    id: 'text',
-                    label: 'Texto',
-                    type: 'text',
-                    value: getCustomization('section-title', 'text', `Promociones de ${displayBusiness?.name || currentBrandConfig.platformName}`)
-                  },
-                  {
-                    id: 'fontSize',
-                    label: 'Tamaño de fuente',
-                    type: 'fontSize',
-                    value: getCustomization('section-title', 'fontSize', 24),
-                    min: 16,
-                    max: 48,
-                    step: 2,
-                    unit: 'px'
-                  }
-                ]
+                properties: buildTextProperties(getCustomization, 'section-title', {
+                  defaultValue: 24,
+                  min: 16,
+                  max: 48,
+                  step: 2
+                }, '#111827')
               }}
             >
-              <h3 
+              <h3
                 className="text-2xl font-semibold"
-                style={{ fontSize: `${getCustomization('section-title', 'fontSize', 24)}px` }}
+                style={sectionTitleStyle}
               >
-                {getCustomization('section-title', 'text', `Promociones de ${displayBusiness?.name || currentBrandConfig.platformName}`)}
+                {`Promociones de ${displayBusiness?.name || currentBrandConfig.platformName}`}
               </h3>
             </EditableElement>
             <EditableElement
@@ -521,18 +476,16 @@ function CustomerView() {
                 elementLabel: 'Descripción de sección',
                 elementType: 'text',
                 category: 'text',
-                properties: [
-                  {
-                    id: 'text',
-                    label: 'Texto',
-                    type: 'text',
-                    value: getCustomization('section-description', 'text', 'Comparte estas ofertas con tu comunidad y aumenta tus canjes digitales.')
-                  }
-                ]
+                properties: buildTextProperties(getCustomization, 'section-description', {
+                  defaultValue: 16,
+                  min: 12,
+                  max: 24,
+                  step: 1
+                }, '#6b7280')
               }}
             >
-              <p className="text-muted-foreground">
-                {getCustomization('section-description', 'text', 'Comparte estas ofertas con tu comunidad y aumenta tus canjes digitales.')}
+              <p className="text-muted-foreground" style={sectionDescriptionStyle}>
+                {'Comparte estas ofertas con tu comunidad y aumenta tus canjes digitales.'}
               </p>
             </EditableElement>
           </div>
@@ -546,7 +499,12 @@ function CustomerView() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {businessCoupons.map((coupon) => (
-                <EditableCouponCard key={coupon.id} coupon={coupon} business={effectiveBusiness} showActions={false} />
+                <EditableCouponCard
+                  key={coupon.id}
+                  coupon={coupon}
+                  business={effectiveBusiness}
+                  showActions={false}
+                />
               ))}
             </div>
           )}
@@ -555,13 +513,9 @@ function CustomerView() {
 
       <footer className="border-t mt-16">
         <div className="container mx-auto px-6 py-8 text-center text-sm text-muted-foreground space-y-2">
+          <p>{currentBrandConfig.platformName} — experiencias de cupones listas para tu marca.</p>
           <p>
-            {currentBrandConfig.platformName} — experiencias de cupones listas
-            para tu marca.
-          </p>
-          <p>
-            Personaliza colores, imágenes y mensajes para lanzar tu propio
-            cuaderno de cupones digitales.
+            Personaliza colores, imágenes y mensajes para lanzar tu propio cuaderno de cupones digitales.
           </p>
         </div>
       </footer>

@@ -43,30 +43,21 @@ export function FloatingPersonalizationPanel() {
     const value = property.value;
 
     switch (property.type) {
-      case 'text':
-        return (
-          <Input
-            value={typeof value === 'string' ? value : String(value || '')}
-            onChange={(e) =>
-              updateProperty(selectedElement!.elementId, property.id, e.target.value)
-            }
-            placeholder={property.label}
-          />
-        );
-
-      case 'color':
+      case 'color': {
+        const colorValue = typeof value === 'string' && value.startsWith('#') ? value : '#000000';
+        const textValue = typeof value === 'string' ? value : '';
         return (
           <div className="flex gap-2">
             <Input
               type="color"
-              value={typeof value === 'string' ? value : '#000000'}
+              value={colorValue}
               onChange={(e) =>
                 updateProperty(selectedElement!.elementId, property.id, e.target.value)
               }
               className="w-16 h-10 cursor-pointer"
             />
             <Input
-              value={typeof value === 'string' ? value : '#000000'}
+              value={textValue}
               onChange={(e) =>
                 updateProperty(selectedElement!.elementId, property.id, e.target.value)
               }
@@ -75,6 +66,7 @@ export function FloatingPersonalizationPanel() {
             />
           </div>
         );
+      }
 
       case 'image':
         return (

@@ -43,7 +43,14 @@ export function CouponCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-3 left-3 flex gap-2">
-            <Badge className="bg-accent text-accent-foreground font-semibold shadow-lg">
+            <Badge
+              className="bg-accent text-accent-foreground font-semibold shadow-lg"
+              style={{
+                fontSize: 'var(--coupon-discount-font-size, 0.875rem)',
+                color: 'var(--coupon-discount-color, hsl(var(--accent-foreground)))',
+                backgroundColor: 'var(--coupon-discount-background, hsl(var(--accent)))'
+              }}
+            >
               <Tag className="w-3 h-3 mr-1" weight="fill" />
               {coupon.discount}
             </Badge>
@@ -86,9 +93,24 @@ export function CouponCard({
             <div className="flex-1 min-w-0">
               <h3 
                 className="font-semibold text-lg leading-tight mb-1 line-clamp-2"
-                style={{ fontSize: 'var(--title-font-size, 1.125rem)' }}
+                style={{
+                  fontSize: 'var(--coupon-title-font-size, 1.125rem)',
+                  color: 'var(--coupon-title-color, inherit)',
+                  fontFamily: 'var(--coupon-title-font-family, inherit)',
+                  letterSpacing: 'var(--coupon-title-letter-spacing, normal)',
+                  textDecoration: 'var(--coupon-title-decoration, none)'
+                }}
               >
-                {coupon.title}
+                <span
+                  className="inline-block"
+                  style={{
+                    backgroundColor: 'var(--coupon-title-background, transparent)',
+                    padding: 'var(--coupon-title-background-padding, 0)',
+                    borderRadius: 'var(--coupon-title-background-radius, 0)'
+                  }}
+                >
+                  {coupon.title}
+                </span>
               </h3>
               <p className="text-sm text-muted-foreground font-medium">
                 {business.name}
@@ -97,9 +119,24 @@ export function CouponCard({
           </div>
           <p 
             className="text-sm text-muted-foreground mb-4 line-clamp-2"
-            style={{ fontSize: 'var(--description-font-size, 0.875rem)' }}
+            style={{
+              fontSize: 'var(--coupon-description-font-size, 0.875rem)',
+              color: 'var(--coupon-description-color, inherit)',
+              fontFamily: 'var(--coupon-description-font-family, inherit)',
+              letterSpacing: 'var(--coupon-description-letter-spacing, normal)',
+              textDecoration: 'var(--coupon-description-decoration, none)'
+            }}
           >
-            {coupon.description}
+            <span
+              className="inline-block"
+              style={{
+                backgroundColor: 'var(--coupon-description-background, transparent)',
+                padding: 'var(--coupon-description-background-padding, 0)',
+                borderRadius: 'var(--coupon-description-background-radius, 0)'
+              }}
+            >
+              {coupon.description}
+            </span>
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
