@@ -3,6 +3,10 @@
 ## Overview
 This demo showcases a complete white-label digital coupon platform with both customer-facing and business management interfaces. All functionality is live and interactive.
 
+## Branching & Deployments
+- The live demo runs from the Next.js 15 App Router code that now powers both `main` and `dev`.
+- The previous React/Vite prototype is archived in `legacy/react` and is no longer deployable or mergeable.
+
 ## Getting Started
 
 ### Customer View (Default)
@@ -204,14 +208,14 @@ Perfect for:
 
 ## Technical Stack
 
-- **Frontend:** React 19 + TypeScript
+- **Frontend:** Next.js 15 (App Router) on React 19 + TypeScript
 - **Styling:** Tailwind CSS v4
 - **Components:** shadcn/ui v4
 - **Icons:** Phosphor Icons
 - **Animations:** Framer Motion
 - **Date Handling:** date-fns
-- **State:** React hooks + Spark KV persistence
-- **Build:** Vite
+- **State:** Client Components + React hooks with Spark KV persistence
+- **Build:** `next build` / `next start`
 
 ## Support & Customization
 

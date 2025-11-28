@@ -2,13 +2,18 @@
 
 Una plataforma digital de cupones white-label que permite a negocios locales ofrecer cupones modernos y móviles a sus clientes, reemplazando los cupones tradicionales de papel con una experiencia digital elegante y completamente personalizable con los colores y marca de cada negocio.
 
+## Estado Técnico y Branching
+- La experiencia corre íntegramente sobre Next.js 15 (App Router) con React 19 y TypeScript estricto.
+- Los branches `main` y `dev` comparten exactamente esta base Next; el antiguo stack React/Vite quedó congelado en `legacy/react` y no acepta PRs.
+- Las nuevas integraciones deben respetar los límites del runtime de Next (componentes cliente/servidor, streaming) y vivir en `src/app` o módulos compartidos dentro de `src`.
+
 **Cualidades de Experiencia**:
 1. **Profesional** - La plataforma debe inspirar confianza en los dueños de negocios de que esta es una solución SaaS legítima y de alta calidad en la que pueden confiar con su marca.
 2. **Accesible** - Los clientes deben entender instantáneamente cómo navegar y canjear cupones sin instrucciones, con una jerarquía visual clara que los guíe a través de la experiencia.
 3. **Personalizable** - La naturaleza white-label debe ser inmediatamente aparente, demostrando qué tan fácilmente se adapta a la identidad de marca de cualquier negocio, incluyendo paleta de colores, nombre de marca, y estilo visual.
 
 **Complexity Level**: Light Application (multiple features with basic state)
-  - The demo showcases core coupon browsing, filtering, and redemption flows with persistent favorites and redemption tracking. Now includes a comprehensive business dashboard for managing coupons, viewing analytics, and customizing branding, but doesn't require user accounts or complex backend logic at this stage.
+  - Ahora respaldado por Next.js, el demo muestra navegación de cupones, filtros y flujos de canje con persistencia local. El dashboard empresarial corre como Client Component dentro de `App` y no requiere cuentas o backend complejo en esta fase, pero está listo para conectarse a APIs cuando se necesite.
 
 ## Essential Features
 
