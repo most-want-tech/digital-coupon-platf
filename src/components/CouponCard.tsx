@@ -84,7 +84,10 @@ export function CouponCard({
         <div className="p-6">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg leading-tight mb-1 line-clamp-2">
+              <h3 
+                className="font-semibold text-lg leading-tight mb-1 line-clamp-2"
+                style={{ fontSize: 'var(--title-font-size, 1.125rem)' }}
+              >
                 {coupon.title}
               </h3>
               <p className="text-sm text-muted-foreground font-medium">
@@ -92,7 +95,10 @@ export function CouponCard({
               </p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+          <p 
+            className="text-sm text-muted-foreground mb-4 line-clamp-2"
+            style={{ fontSize: 'var(--description-font-size, 0.875rem)' }}
+          >
             {coupon.description}
           </p>
           <div className="flex items-center justify-between">
