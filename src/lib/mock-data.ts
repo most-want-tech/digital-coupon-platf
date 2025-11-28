@@ -119,6 +119,7 @@ export const mockCoupons: Coupon[] = [
     redemptionCode: 'LOYALTY',
     isNew: true,
     isActive: true,
+    maxRedemptions: 100,
     currentRedemptions: 5,
     createdAt: new Date().toISOString()
   }
