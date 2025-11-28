@@ -17,10 +17,28 @@ export function useBrandConfigs(initial: Record<string, BrandConfig> = {}) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = parseStoredValue(window.localStorage.getItem(STORAGE_KEY));
-    if (stored) {
-      setConfig(stored);
+    
+    async function loadConfigs() {
+      try {
+        const response = await fetch('/api/brand-configs');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.configs && Object.keys(data.configs).length > 0) {
+            setConfig(data.configs);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load brand configs from server:', error);
+      }
+      
+      const stored = parseStoredValue(window.localStorage.getItem(STORAGE_KEY));
+      if (stored) {
+        setConfig(stored);
+      }
     }
+    
+    loadConfigs();
   }, []);
 
   const updateConfig = useCallback(
@@ -31,13 +49,23 @@ export function useBrandConfigs(initial: Record<string, BrandConfig> = {}) {
     ) => {
       setConfig((prev) => {
         const resolved = typeof next === 'function' ? (next as (p: Record<string, BrandConfig>) => Record<string, BrandConfig>)(prev) : next;
+        
         if (typeof window !== 'undefined') {
           try {
             window.localStorage.setItem(STORAGE_KEY, JSON.stringify(resolved));
           } catch {
             // Ignore storage quota errors in private browsing modes.
           }
+          
+          fetch('/api/brand-configs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ configs: resolved })
+          }).catch((error) => {
+            console.error('Failed to save brand configs to server:', error);
+          });
         }
+        
         return resolved;
       });
     },

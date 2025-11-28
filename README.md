@@ -30,6 +30,7 @@ A white-label digital coupon book SaaS platform that enables local businesses to
   - White-label branding customization (colors, logo, cover images)
   - API integration documentation
 - **Live Data**: Dashboard uses real redemption data from customer interactions
+- **Server-Side Persistence**: User personalizations and brand configs saved to JSON files
 
 ## 🚀 Quick Start
 
@@ -50,6 +51,7 @@ That's it! The app runs in demo mode by default with 5 sample coupons.
 - [QUICK_START.md](QUICK_START.md) - Quick setup guide
 - [API_MIGRATION.md](API_MIGRATION.md) - API architecture details
 - [DEMO_GUIDE.md](DEMO_GUIDE.md) - Demo walkthrough
+- [PERSISTENCE_GUIDE.md](PERSISTENCE_GUIDE.md) - Server-side data persistence
 
 ## 🎨 White-Label Ready
 
@@ -107,6 +109,27 @@ NEXT_PUBLIC_USE_DEMO_DATA=false # Production mode
 ```
 
 See [API_MIGRATION.md](API_MIGRATION.md) for complete details.
+
+## 💾 Data Persistence
+
+User personalizations and brand configurations are now **persisted server-side** in JSON files:
+
+- **Automatic saving**: Changes are saved to both server and localStorage
+- **Server-first loading**: Data loads from server on customer visits
+- **Fallback ready**: LocalStorage fallback if server unavailable
+- **Easy backup**: Simple JSON files in `/data` directory
+
+**API Endpoints:**
+- `GET/POST/DELETE /api/personalizations` - UI customizations
+- `GET/POST/DELETE /api/brand-configs` - Brand theme configs
+
+**Test the API:**
+```bash
+npm run dev
+./scripts/test-persistence.sh  # Requires jq
+```
+
+See [PERSISTENCE_GUIDE.md](PERSISTENCE_GUIDE.md) for complete details.
 
 ---
 
