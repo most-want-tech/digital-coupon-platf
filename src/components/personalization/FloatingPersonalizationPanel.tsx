@@ -22,12 +22,12 @@ import {
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import type { EditableProperty } from '@/lib/personalization-types';
+import type { EditableProperty, PropertyValue } from '@/lib/personalization-types';
 
 export function FloatingPersonalizationPanel() {
   const { state, selectElement, updateProperty, undo, redo, reset, saveCustomizations } =
     usePersonalization();
-  const { selectedElement, historyIndex, history } = state;
+  const { selectedElement, historyIndex, history, customizations } = state;
 
   const handleSave = () => {
     saveCustomizations();
@@ -39,8 +39,21 @@ export function FloatingPersonalizationPanel() {
     toast.success('Personalizaciones reiniciadas');
   };
 
+  const resolvePropertyValue = (property: EditableProperty) => {
+    if (!selectedElement) {
+      return property.value;
+    }
+
+    const elementCustomizations = customizations[selectedElement.elementId];
+    if (elementCustomizations && elementCustomizations[property.id] !== undefined) {
+      return elementCustomizations[property.id];
+    }
+
+    return property.value;
+  };
+
   const renderPropertyEditor = (property: EditableProperty) => {
-    const value = property.value;
+    const value = resolvePropertyValue(property);
 
     switch (property.type) {
       case 'color': {
@@ -113,24 +126,35 @@ export function FloatingPersonalizationPanel() {
           </div>
         );
 
-      case 'select':
+      case 'select': {
+        const options = property.options ?? [];
+        const optionKey = (index: number) => `${property.id}-${index}`;
+        const activeIndex = options.findIndex((option) => option.value === value);
+        const selectValue = activeIndex >= 0 ? optionKey(activeIndex) : '';
+
+        const handleSelectChange = (key: string) => {
+          const selectedIndex = options.findIndex((_, index) => optionKey(index) === key);
+          const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : undefined;
+          const nextValue = (selectedOption?.value ?? key) as PropertyValue;
+
+          updateProperty(selectedElement!.elementId, property.id, nextValue);
+        };
+
         return (
-          <Select
-            value={String(value || '')}
-            onValueChange={(val) => updateProperty(selectedElement!.elementId, property.id, val)}
-          >
+          <Select value={selectValue} onValueChange={handleSelectChange}>
             <SelectTrigger>
               <SelectValue placeholder={property.label} />
             </SelectTrigger>
             <SelectContent>
-              {property.options?.map((option) => (
-                <SelectItem key={String(option.value)} value={String(option.value)}>
+              {options.map((option, index) => (
+                <SelectItem key={optionKey(index)} value={optionKey(index)}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         );
+      }
 
       default:
         return null;
