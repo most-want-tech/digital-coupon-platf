@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { usePersonalization } from '@/contexts/PersonalizationContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,10 @@ import {
   Trash,
   Palette,
   TextT,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CircleNotch,
+  CheckCircle,
+  WarningCircle
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -28,10 +32,35 @@ export function FloatingPersonalizationPanel() {
   const { state, selectElement, updateProperty, undo, redo, reset, saveCustomizations } =
     usePersonalization();
   const { selectedElement, historyIndex, history, customizations } = state;
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSave = () => {
-    saveCustomizations();
-    toast.success('¡Cambios guardados exitosamente!');
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current) {
+        clearTimeout(resetTimer.current);
+      }
+    };
+  }, []);
+
+  const handleSave = async () => {
+    if (saveState === 'saving') return;
+
+    setSaveState('saving');
+    try {
+      await saveCustomizations();
+      toast.success('¡Cambios guardados exitosamente!');
+      setSaveState('success');
+    } catch (error) {
+      console.error('No se pudieron guardar los cambios:', error);
+      toast.error('No se pudieron guardar los cambios. Intenta de nuevo.');
+      setSaveState('error');
+    } finally {
+      if (resetTimer.current) {
+        clearTimeout(resetTimer.current);
+      }
+      resetTimer.current = setTimeout(() => setSaveState('idle'), 2000);
+    }
   };
 
   const handleReset = () => {
@@ -252,11 +281,42 @@ export function FloatingPersonalizationPanel() {
                   <Trash className="w-4 h-4" />
                   Reiniciar
                 </Button>
-                <Button size="sm" onClick={handleSave} className="flex-1 gap-2">
-                  <FloppyDisk className="w-4 h-4" />
-                  Guardar
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  className="flex-1 gap-2"
+                  disabled={saveState === 'saving'}
+                >
+                  {saveState === 'saving' ? (
+                    <CircleNotch className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FloppyDisk className="w-4 h-4" />
+                  )}
+                  {saveState === 'saving'
+                    ? 'Guardando...'
+                    : saveState === 'success'
+                      ? 'Guardado'
+                      : 'Guardar'}
                 </Button>
               </div>
+              {saveState !== 'idle' && (
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+                  {saveState === 'saving' && (
+                    <CircleNotch className="w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                  {saveState === 'success' && (
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  )}
+                  {saveState === 'error' && (
+                    <WarningCircle className="w-4 h-4 text-destructive" />
+                  )}
+                  <span className="text-muted-foreground">
+                    {saveState === 'saving' && 'Guardando tus personalizaciones...'}
+                    {saveState === 'success' && 'Cambios guardados exitosamente.'}
+                    {saveState === 'error' && 'Ocurrió un error al guardar. Reintenta.'}
+                  </span>
+                </div>
+              )}
             </div>
           </Card>
         </motion.div>
