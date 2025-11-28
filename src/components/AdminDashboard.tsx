@@ -1,3 +1,5 @@
+'use client';
+
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,7 +31,6 @@ interface AdminDashboardProps {
   ) => void;
   apiData: RouticketApiResponse | null;
   partnerId: number;
-  apiPublicKey: string;
   isLoading: boolean;
   error: string | null;
   onRefresh: () => void;
@@ -41,7 +42,6 @@ export function AdminDashboard({
   onBrandConfigUpdate,
   apiData,
   partnerId,
-  apiPublicKey,
   isLoading,
   error,
   onRefresh
@@ -177,7 +177,7 @@ export function AdminDashboard({
 
           <TabsContent value="overview" className="space-y-6">
             {/* Welcome Banner */}
-            <div className="rounded-lg border bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6">
+            <div className="rounded-lg border bg-linear-to-r from-primary/10 via-primary/5 to-background p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight mb-2">
@@ -213,7 +213,6 @@ export function AdminDashboard({
             <CouponManagement
               isLoading={isLoading}
               coupons={partnerCoupons}
-              apiPublicKey={apiPublicKey}
             />
           </TabsContent>
 

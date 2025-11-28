@@ -1,12 +1,13 @@
+"use client";
+
+import type { FallbackProps } from 'react-error-boundary';
 import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
 
 import { AlertTriangleIcon, RefreshCwIcon } from "lucide-react";
 
-export const ErrorFallback = ({ error, resetErrorBoundary }) => {
-  // When encountering an error in the development mode, rethrow it and don't display the boundary.
-  // The parent UI will take care of showing a more helpful dialog.
-  if (import.meta.env.DEV) throw error;
+export const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+  if (process.env.NODE_ENV !== 'production') throw error;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -37,4 +38,4 @@ export const ErrorFallback = ({ error, resetErrorBoundary }) => {
       </div>
     </div>
   );
-}
+};

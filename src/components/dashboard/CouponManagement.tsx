@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { RouticketCoupon } from '@/lib/types';
@@ -8,7 +8,6 @@ import { ArrowSquareOut, Clock, Eye, ListChecks } from '@phosphor-icons/react';
 interface CouponManagementProps {
   isLoading: boolean;
   coupons: RouticketCoupon[];
-  apiPublicKey?: string;
 }
 
 const numberFormatter = new Intl.NumberFormat('es-MX');
@@ -26,7 +25,7 @@ const formatDate = (value: string) => {
   }).format(date);
 };
 
-export function CouponManagement({ isLoading, coupons, apiPublicKey }: CouponManagementProps) {
+export function CouponManagement({ isLoading, coupons }: CouponManagementProps) {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const filteredCoupons = useMemo(() => {
