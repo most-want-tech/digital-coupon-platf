@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Coupon, Business } from '@/lib/types';
-import { Heart, Tag, Clock } from '@phosphor-icons/react';
+import { Heart, Tag, Clock, ArrowSquareOut } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 
 interface CouponCardProps {
@@ -108,18 +108,35 @@ export function CouponCard({
                 Vence {expiryDate.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
               </span>
             </div>
-            {showActions && onRedeem && (
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRedeem();
-                }}
-                disabled={isRedeemed}
-              >
-                {isRedeemed ? 'Canjeado' : 'Canjear'}
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {showActions && onRedeem && (
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRedeem();
+                  }}
+                  disabled={isRedeemed}
+                >
+                  {isRedeemed ? 'Canjeado' : 'Canjear'}
+                </Button>
+              )}
+              {!showActions && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const sanitizedId = encodeURIComponent(coupon.id);
+                    window.open(`https://routicket.com/cupon/?id_cupon=${sanitizedId}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="gap-1"
+                >
+                  <span>Ver en Routicket</span>
+                  <ArrowSquareOut className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </Card>
