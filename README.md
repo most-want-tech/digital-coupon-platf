@@ -33,7 +33,23 @@ A white-label digital coupon book SaaS platform that enables local businesses to
 
 ## 🚀 Quick Start
 
-Click the "Business Login" button in the header to access the business dashboard. Switch back to customer view anytime using the "Customer View" button.
+**New!** The platform now includes **demo mode** for development without API quota consumption.
+
+```bash
+npm install
+npm run dev
+```
+
+That's it! The app runs in demo mode by default with 5 sample coupons.
+
+- Click the "Business Dashboard" button to access the admin panel
+- Switch back to customer view anytime using the "Customer View" button
+- Toggle between demo/production modes with environment variables
+
+📖 **Documentation:**
+- [QUICK_START.md](QUICK_START.md) - Quick setup guide
+- [API_MIGRATION.md](API_MIGRATION.md) - API architecture details
+- [DEMO_GUIDE.md](DEMO_GUIDE.md) - Demo walkthrough
 
 ## 🎨 White-Label Ready
 
@@ -68,14 +84,29 @@ Perfect for:
 - Validate production builds with `npm run build && npm run start`.
 - Run linting `npm run lint` and type safety checks `npm run type-check` before opening PRs.
 
-## 🔧 API Ready
+## 🔧 API Architecture
 
-The platform is designed to connect with backend APIs for:
-- Business management
-- Coupon CRUD operations
-- Redemption tracking
-- Analytics data
-- User authentication
+The platform now uses **Next.js API routes** with support for demo and production modes:
+
+**Demo Mode** (Default for development):
+- Uses mock data from `src/data/mock-coupons.json`
+- No external API calls - zero quota consumption
+- 5 realistic sample coupons with full statistics
+- Perfect for development and testing
+
+**Production Mode**:
+- Connects to Routicket API through Next.js API route
+- Server-side caching (30-minute revalidation)
+- Secure - API credentials never exposed to client
+- Better error handling and logging
+
+Toggle modes with one environment variable:
+```bash
+NEXT_PUBLIC_USE_DEMO_DATA=true  # Demo mode
+NEXT_PUBLIC_USE_DEMO_DATA=false # Production mode
+```
+
+See [API_MIGRATION.md](API_MIGRATION.md) for complete details.
 
 ---
 
