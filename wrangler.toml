@@ -1,11 +1,29 @@
 name = "digital-coupon-platf"
-account_id =  '506f9cb0651ab5f7efe9f1e44f1f4e29'
+account_id = "506f9cb0651ab5f7efe9f1e44f1f4e29"
 main = ".open-next/worker.js"
 compatibility_date = "2025-11-28"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 [vars]
+NEXT_PUBLIC_USE_DEMO_DATA = "false"
+NEXT_PUBLIC_API_PUBLIC_KEY = "PUBLIC-d6fee5badbc6667e"
+NEXT_PUBLIC_API_SECRET_KEY = "SECRET-2b5503383995adc8ffaddba8ec79f331"
+NEXT_PUBLIC_PARTNER_ID = "1427"
+NEXT_PUBLIC_USER_ID = "1427"
+
+[env.preview]
+
+[env.preview.vars]
+NEXT_PUBLIC_USE_DEMO_DATA = "false"
+NEXT_PUBLIC_API_PUBLIC_KEY = "PUBLIC-d6fee5badbc6667e"
+NEXT_PUBLIC_API_SECRET_KEY = "SECRET-2b5503383995adc8ffaddba8ec79f331"
+NEXT_PUBLIC_PARTNER_ID = "1427"
+NEXT_PUBLIC_USER_ID = "1427"
+
+[env.production]
+
+[env.production.vars]
 NEXT_PUBLIC_USE_DEMO_DATA = "false"
 NEXT_PUBLIC_API_PUBLIC_KEY = "PUBLIC-d6fee5badbc6667e"
 NEXT_PUBLIC_API_SECRET_KEY = "SECRET-2b5503383995adc8ffaddba8ec79f331"

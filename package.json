@@ -9,8 +9,8 @@
         "start": "next start",
         "lint": "next lint",
         "type-check": "tsc --noEmit",
-        "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-        "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+        "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview -- --env preview",
+        "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy -- --env production"
     },
     "dependencies": {
         "@github/spark": "^0.39.0",
