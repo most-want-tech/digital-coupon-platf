@@ -15,7 +15,9 @@ import { CouponsSection } from './CouponsSection';
 const API_PUBLIC_KEY = process.env.NEXT_PUBLIC_API_PUBLIC_KEY ?? 'demo-public-key';
 const API_SECRET_KEY = process.env.NEXT_PUBLIC_API_SECRET_KEY ?? 'demo-secret-key';
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID ?? 'demo-user';
-const PARTNER_ID = process.env.NEXT_PUBLIC_PARTNER_ID ?? '1427';
+const DEFAULT_PARTNER_ID = 1427;
+const parsedPartnerId = Number.parseInt(process.env.NEXT_PUBLIC_PARTNER_ID ?? '', 10);
+const PARTNER_ID = Number.isNaN(parsedPartnerId) ? DEFAULT_PARTNER_ID : parsedPartnerId;
 const USE_DEMO_DATA = process.env.NEXT_PUBLIC_USE_DEMO_DATA === 'true';
 
 function normalizeDate(value?: string | number | Date | null) {
@@ -147,7 +149,7 @@ export function CustomerExperience() {
         brandConfigs={brandConfigs || {}}
         onBrandConfigUpdate={setBrandConfigs}
         apiData={apiData}
-        partnerId={PARTNER_ID}
+          partnerId={PARTNER_ID}
         isLoading={isApiLoading}
         error={apiError}
         onRefresh={refreshApi}

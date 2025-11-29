@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+                                                                                                                                                      import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchRouticketCoupons } from '@/lib/routicket';
 import type { RouticketApiResponse } from '@/lib/types';
 
 interface UseRouticketDataOptions {
   apiPublicKey: string;
-  apiSecret?: string;
+  apiSecret?: string;                               
   userId?: number | string;
   partnerId?: number | string;
   useDemoData?: boolean;

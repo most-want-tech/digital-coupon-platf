@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { EditableElement } from '@/components/personalization/EditableElement';
 import { usePersonalization } from '@/contexts/PersonalizationContext';
 import { buildTextProperties, buildTextStyles } from '@/lib/personalization-text';
+import type { EditableElementConfig } from '@/lib/personalization-types';
 import type { BrandConfig, Business } from '@/lib/types';
 
 interface HeroSectionProps {
@@ -38,7 +39,7 @@ export function HeroSection({ displayBusiness, brandConfig, tagline, onOpenDashb
   const heroImageUrl = getCustomization('hero-image', 'url', brandConfig.heroImageUrl || '');
   const heroImageOpacity = getCustomization('hero-image', 'opacity', 80);
 
-  const heroImageConfig = {
+  const heroImageConfig: EditableElementConfig = {
     elementId: 'hero-image',
     elementLabel: 'Imagen de héroe',
     elementType: 'image',
@@ -61,7 +62,7 @@ export function HeroSection({ displayBusiness, brandConfig, tagline, onOpenDashb
         unit: '%'
       }
     ]
-  } as const;
+  };
 
   return (
     <section className="relative overflow-hidden rounded-3xl border bg-card text-card-foreground">

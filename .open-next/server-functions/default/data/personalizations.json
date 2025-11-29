@@ -1,0 +1,14 @@
+{
+  "customizations": {
+    "coupon-mock-coupon-2": {
+      "borderRadius": 16,
+      "titleFontSize": 26,
+      "titleColor": "#00ff4c",
+      "titleLetterSpacing": 4,
+      "titleBackground": "#ff0000",
+      "descriptionDecoration": "underline",
+      "discountFontSize": 20
+    }
+  },
+  "lastUpdated": "2025-11-28T20:56:24.740Z"
+}

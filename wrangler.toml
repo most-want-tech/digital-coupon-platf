@@ -1,0 +1,10 @@
+name = "digital-coupon-platf"
+account_id =  '506f9cb0651ab5f7efe9f1e44f1f4e29'
+main = ".open-next/worker.js"
+compatibility_date = "2025-11-28"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[assets]
+binding = "ASSETS"
+directory = ".open-next/assets"

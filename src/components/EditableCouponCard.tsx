@@ -199,46 +199,50 @@ export function EditableCouponCard({ coupon, business, showActions = false }: Ed
   const discountColor = getCustomization(couponKey, 'discountColor', '') as string;
   const discountBackground = getCustomization(couponKey, 'discountBackground', '') as string;
 
-  const cardStyles: CSSProperties = {
-    borderRadius: `${borderRadius}px`,
-    ['--coupon-title-font-size' as string]: `${titleFontSize}px`,
-    ['--coupon-description-font-size' as string]: `${descriptionFontSize}px`,
-    ['--coupon-discount-font-size' as string]: `${discountFontSize}px`,
-    ['--coupon-title-letter-spacing' as string]: `${titleLetterSpacing}px`,
-    ['--coupon-description-letter-spacing' as string]: `${descriptionLetterSpacing}px`,
-    ['--coupon-title-decoration' as string]: titleDecoration,
-    ['--coupon-description-decoration' as string]: descriptionDecoration,
-    ['--coupon-title-font-family' as string]: titleFontFamily,
-    ['--coupon-description-font-family' as string]: descriptionFontFamily
+  const cssVariables: Record<string, string> = {
+    '--coupon-title-font-size': `${titleFontSize}px`,
+    '--coupon-description-font-size': `${descriptionFontSize}px`,
+    '--coupon-discount-font-size': `${discountFontSize}px`,
+    '--coupon-title-letter-spacing': `${titleLetterSpacing}px`,
+    '--coupon-description-letter-spacing': `${descriptionLetterSpacing}px`,
+    '--coupon-title-decoration': titleDecoration,
+    '--coupon-description-decoration': descriptionDecoration,
+    '--coupon-title-font-family': titleFontFamily,
+    '--coupon-description-font-family': descriptionFontFamily
   };
 
   if (titleColor) {
-    cardStyles['--coupon-title-color' as string] = titleColor;
+    cssVariables['--coupon-title-color'] = titleColor;
   }
 
   if (titleBackground) {
-    cardStyles['--coupon-title-background' as string] = titleBackground;
-    cardStyles['--coupon-title-background-padding' as string] = '0.1em 0.35em';
-    cardStyles['--coupon-title-background-radius' as string] = '0.35rem';
+    cssVariables['--coupon-title-background'] = titleBackground;
+    cssVariables['--coupon-title-background-padding'] = '0.1em 0.35em';
+    cssVariables['--coupon-title-background-radius'] = '0.35rem';
   }
 
   if (descriptionColor) {
-    cardStyles['--coupon-description-color' as string] = descriptionColor;
+    cssVariables['--coupon-description-color'] = descriptionColor;
   }
 
   if (descriptionBackground) {
-    cardStyles['--coupon-description-background' as string] = descriptionBackground;
-    cardStyles['--coupon-description-background-padding' as string] = '0.05em 0.25em';
-    cardStyles['--coupon-description-background-radius' as string] = '0.35rem';
+    cssVariables['--coupon-description-background'] = descriptionBackground;
+    cssVariables['--coupon-description-background-padding'] = '0.05em 0.25em';
+    cssVariables['--coupon-description-background-radius'] = '0.35rem';
   }
 
   if (discountColor) {
-    cardStyles['--coupon-discount-color' as string] = discountColor;
+    cssVariables['--coupon-discount-color'] = discountColor;
   }
 
   if (discountBackground) {
-    cardStyles['--coupon-discount-background' as string] = discountBackground;
+    cssVariables['--coupon-discount-background'] = discountBackground;
   }
+
+  const cardStyles: CSSProperties = {
+    borderRadius: `${borderRadius}px`,
+    ...cssVariables
+  };
 
   return (
     <EditableElement elementConfig={couponConfig}>
