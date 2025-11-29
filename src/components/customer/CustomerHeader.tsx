@@ -1,6 +1,6 @@
 'use client';
 
-import { Storefront, Tag } from '@phosphor-icons/react';
+import { LockSimple, SignOut, Storefront, Tag } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { EditableElement } from '@/components/personalization/EditableElement';
 import { PersonalizationModeToggle } from '@/components/personalization/PersonalizationModeToggle';
@@ -12,9 +12,19 @@ interface CustomerHeaderProps {
   brandConfig: BrandConfig;
   tagline: string;
   onSwitchToDashboard: () => void;
+  isAuthenticated: boolean;
+  onRequestLogin: () => void;
+  onLogout: () => void;
 }
 
-export function CustomerHeader({ brandConfig, tagline, onSwitchToDashboard }: CustomerHeaderProps) {
+export function CustomerHeader({
+  brandConfig,
+  tagline,
+  onSwitchToDashboard,
+  isAuthenticated,
+  onRequestLogin,
+  onLogout
+}: CustomerHeaderProps) {
   const { getCustomization } = usePersonalization();
 
   const titleConfig = {
@@ -83,10 +93,26 @@ export function CustomerHeader({ brandConfig, tagline, onSwitchToDashboard }: Cu
         </div>
 
         <div className="flex items-center gap-2">
-          <PersonalizationModeToggle />
-          <Button variant="outline" size="sm" className="gap-2" onClick={onSwitchToDashboard}>
-            <Storefront className="w-4 h-4" />
-            Business Dashboard
+          {isAuthenticated ? (
+            <PersonalizationModeToggle />
+          ) : (
+            <Button variant="link" size="sm" onClick={onRequestLogin} className="text-muted-foreground">
+              ¿Eres dueño? Inicia sesión
+            </Button>
+          )}
+          {isAuthenticated && (
+            <Button variant="ghost" size="icon" aria-label="Cerrar sesión" onClick={onLogout}>
+              <SignOut className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={isAuthenticated ? onSwitchToDashboard : onRequestLogin}
+          >
+            {isAuthenticated ? <Storefront className="w-4 h-4" /> : <LockSimple className="w-4 h-4" />}
+            {isAuthenticated ? 'Business Dashboard' : 'Acceder como negocio'}
           </Button>
         </div>
       </div>

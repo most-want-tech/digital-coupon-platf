@@ -12,9 +12,18 @@ interface HeroSectionProps {
   brandConfig: BrandConfig;
   tagline: string;
   onOpenDashboard: () => void;
+  onRequestLogin: () => void;
+  isAuthenticated: boolean;
 }
 
-export function HeroSection({ displayBusiness, brandConfig, tagline, onOpenDashboard }: HeroSectionProps) {
+export function HeroSection({
+  displayBusiness,
+  brandConfig,
+  tagline,
+  onOpenDashboard,
+  onRequestLogin,
+  isAuthenticated
+}: HeroSectionProps) {
   const { getCustomization } = usePersonalization();
 
   const heroSubtitleStyle = buildTextStyles(getCustomization, 'hero-subtitle', { fontSize: 14 });
@@ -169,9 +178,11 @@ export function HeroSection({ displayBusiness, brandConfig, tagline, onOpenDashb
               size="lg"
               className="px-6"
               style={heroSecondaryButtonStyle}
-              onClick={onOpenDashboard}
+              onClick={isAuthenticated ? onOpenDashboard : onRequestLogin}
             >
-              {brandConfig.secondaryButtonLabel || 'Personalizar experiencia'}
+              {isAuthenticated
+                ? brandConfig.secondaryButtonLabel || 'Personalizar experiencia'
+                : 'Ingresar como negocio'}
             </Button>
           </EditableElement>
         </div>

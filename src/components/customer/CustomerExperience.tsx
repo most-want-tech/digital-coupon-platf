@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { BusinessLoginDialog } from '@/components/auth/BusinessLoginDialog';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { FloatingPersonalizationPanel } from '@/components/personalization/FloatingPersonalizationPanel';
 import { useBrandConfigs } from '@/hooks/use-brand-configs';
@@ -19,6 +21,10 @@ const DEFAULT_PARTNER_ID = 1427;
 const parsedPartnerId = Number.parseInt(process.env.NEXT_PUBLIC_PARTNER_ID ?? '', 10);
 const PARTNER_ID = Number.isNaN(parsedPartnerId) ? DEFAULT_PARTNER_ID : parsedPartnerId;
 const USE_DEMO_DATA = process.env.NEXT_PUBLIC_USE_DEMO_DATA === 'true';
+const DEMO_BUSINESS_EMAIL =
+  process.env.NEXT_PUBLIC_DEMO_BUSINESS_EMAIL ?? 'dueño.demo@couponhub.app';
+const DEMO_BUSINESS_PASSWORD = process.env.NEXT_PUBLIC_DEMO_BUSINESS_PASSWORD ?? 'DemoNegocio!23';
+const AUTH_STORAGE_KEY = 'couponhub-business-authenticated';
 
 function normalizeDate(value?: string | number | Date | null) {
   if (!value) {
@@ -42,6 +48,9 @@ function getPrimaryBrandConfig(brandConfigs: Record<string, BrandConfig> | undef
 export function CustomerExperience() {
   const [viewMode, setViewMode] = useState<'customer' | 'business'>('customer');
   const [brandConfigs, setBrandConfigs] = useBrandConfigs({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const {
     data: apiData,
@@ -100,6 +109,67 @@ export function CustomerExperience() {
     applyBrandColors(currentBrandConfig);
   }, [currentBrandConfig]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedAuthState = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    if (storedAuthState === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(AUTH_STORAGE_KEY, isAuthenticated ? 'true' : 'false');
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated && viewMode === 'business') {
+      setViewMode('customer');
+    }
+  }, [isAuthenticated, viewMode]);
+
+  const handleLoginDialogChange = (open: boolean) => {
+    setIsLoginDialogOpen(open);
+    if (!open) {
+      setLoginError(null);
+    }
+  };
+
+  const openLoginDialog = () => {
+    setLoginError(null);
+    setIsLoginDialogOpen(true);
+  };
+
+  const handleAuthenticate = ({ email, password }: { email: string; password: string }) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedDemoEmail = DEMO_BUSINESS_EMAIL.toLowerCase();
+
+    if (normalizedEmail === normalizedDemoEmail && password === DEMO_BUSINESS_PASSWORD) {
+      setIsAuthenticated(true);
+      setViewMode('business');
+      setIsLoginDialogOpen(false);
+      setLoginError(null);
+      toast.success('Acceso concedido. Bienvenido al panel empresarial.');
+      return;
+    }
+
+    setLoginError('Las credenciales no coinciden con el usuario demo proporcionado.');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setViewMode('customer');
+    toast.success('Sesión cerrada correctamente.');
+  };
+
+  const requireBusinessAccess = () => {
+    if (isAuthenticated) {
+      setViewMode('business');
+      return;
+    }
+    openLoginDialog();
+  };
+
   const placeholderBusiness = useMemo<Business>(
     () => ({
       id: 'placeholder-business',
@@ -142,14 +212,14 @@ export function CustomerExperience() {
 
   const effectiveBusiness = businessCoupons === mockCoupons ? mockBusiness : displayBusiness;
 
-  if (viewMode === 'business') {
+  if (viewMode === 'business' && isAuthenticated) {
     return (
       <AdminDashboard
         onBackToCustomer={() => setViewMode('customer')}
         brandConfigs={brandConfigs || {}}
         onBrandConfigUpdate={setBrandConfigs}
         apiData={apiData}
-          partnerId={PARTNER_ID}
+        partnerId={PARTNER_ID}
         isLoading={isApiLoading}
         error={apiError}
         onRefresh={refreshApi}
@@ -168,40 +238,55 @@ export function CustomerExperience() {
       : 'Explora ofertas exclusivas de negocios locales en tu comunidad.');
 
   return (
-    <div className="min-h-screen" style={backgroundStyle}>
-      <FloatingPersonalizationPanel />
-
-      <CustomerHeader
-        brandConfig={currentBrandConfig}
-        tagline={tagline}
-        onSwitchToDashboard={() => setViewMode('business')}
+    <>
+      <BusinessLoginDialog
+        open={isLoginDialogOpen}
+        onOpenChange={handleLoginDialogChange}
+        demoEmail={DEMO_BUSINESS_EMAIL}
+        demoPassword={DEMO_BUSINESS_PASSWORD}
+        error={loginError}
+        onAuthenticate={handleAuthenticate}
       />
+      <div className="min-h-screen" style={backgroundStyle}>
+        {isAuthenticated && <FloatingPersonalizationPanel />}
 
-      <main className="container mx-auto px-6 py-10 space-y-10">
-        <HeroSection
-          displayBusiness={displayBusiness}
+        <CustomerHeader
           brandConfig={currentBrandConfig}
           tagline={tagline}
-          onOpenDashboard={() => setViewMode('business')}
+          onSwitchToDashboard={requireBusinessAccess}
+          isAuthenticated={isAuthenticated}
+          onRequestLogin={openLoginDialog}
+          onLogout={handleLogout}
         />
 
-        <CouponsSection
-          businessName={displayBusiness?.name}
-          fallbackPlatformName={currentBrandConfig.platformName}
-          businessCoupons={businessCoupons}
-          effectiveBusiness={effectiveBusiness}
-          isLoading={isApiLoading}
-        />
-      </main>
+        <main className="container mx-auto px-6 py-10 space-y-10">
+          <HeroSection
+            displayBusiness={displayBusiness}
+            brandConfig={currentBrandConfig}
+            tagline={tagline}
+            onOpenDashboard={requireBusinessAccess}
+            onRequestLogin={openLoginDialog}
+            isAuthenticated={isAuthenticated}
+          />
 
-      <footer className="border-t mt-16">
-        <div className="container mx-auto px-6 py-8 text-center text-sm text-muted-foreground space-y-2">
-          <p>{currentBrandConfig.platformName} — experiencias de cupones listas para tu marca.</p>
-          <p>
-            Personaliza colores, imágenes y mensajes para lanzar tu propio cuaderno de cupones digitales.
-          </p>
-        </div>
-      </footer>
-    </div>
+          <CouponsSection
+            businessName={displayBusiness?.name}
+            fallbackPlatformName={currentBrandConfig.platformName}
+            businessCoupons={businessCoupons}
+            effectiveBusiness={effectiveBusiness}
+            isLoading={isApiLoading}
+          />
+        </main>
+
+        <footer className="border-t mt-16">
+          <div className="container mx-auto px-6 py-8 text-center text-sm text-muted-foreground space-y-2">
+            <p>{currentBrandConfig.platformName} — experiencias de cupones listas para tu marca.</p>
+            <p>
+              Personaliza colores, imágenes y mensajes para lanzar tu propio cuaderno de cupones digitales.
+            </p>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 }
