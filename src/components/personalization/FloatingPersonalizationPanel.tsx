@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { usePersonalization } from '@/contexts/PersonalizationContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import {
   X,
   FloppyDisk,
@@ -18,20 +20,59 @@ import {
   Trash,
   Palette,
   TextT,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CircleNotch,
+  CheckCircle,
+  WarningCircle
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import type { EditableProperty } from '@/lib/personalization-types';
+import type { EditableProperty, PropertyValue } from '@/lib/personalization-types';
 
 export function FloatingPersonalizationPanel() {
   const { state, selectElement, updateProperty, undo, redo, reset, saveCustomizations } =
     usePersonalization();
-  const { selectedElement, historyIndex, history } = state;
+  const { selectedElement, historyIndex, history, customizations } = state;
+  type SaveState = 'idle' | 'saving' | 'success' | 'error';
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSave = () => {
-    saveCustomizations();
-    toast.success('¡Cambios guardados exitosamente!');
+  const panelToneClasses: Record<SaveState, string> = {
+    idle: 'bg-card border-2 shadow-2xl',
+    saving:
+      'bg-gradient-to-br from-amber-100 via-amber-50 to-white border-amber-200 shadow-[0_15px_45px_rgba(245,158,11,0.2)] dark:from-amber-900/30 dark:via-amber-900/10 dark:to-transparent dark:border-amber-800',
+    success:
+      'bg-gradient-to-br from-emerald-200 via-emerald-100 to-emerald-50 border-emerald-300 text-emerald-950 shadow-[0_20px_60px_rgba(16,185,129,0.35)] dark:from-emerald-900/50 dark:via-emerald-900/30 dark:to-transparent dark:border-emerald-800',
+    error:
+      'bg-gradient-to-br from-rose-200 via-rose-100 to-rose-50 border-rose-300 text-rose-950 shadow-[0_20px_60px_rgba(244,63,94,0.35)] dark:from-rose-900/50 dark:via-rose-900/30 dark:to-transparent dark:border-rose-800'
+  };
+
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current) {
+        clearTimeout(resetTimer.current);
+      }
+    };
+  }, []);
+
+  const handleSave = async () => {
+    if (saveState === 'saving') return;
+
+    setSaveState('saving');
+    try {
+      await saveCustomizations();
+      toast.success('¡Cambios guardados exitosamente!');
+      setSaveState('success');
+    } catch (error) {
+      console.error('No se pudieron guardar los cambios:', error);
+      toast.error('No se pudieron guardar los cambios. Intenta de nuevo.');
+      setSaveState('error');
+    } finally {
+      if (resetTimer.current) {
+        clearTimeout(resetTimer.current);
+      }
+      resetTimer.current = setTimeout(() => setSaveState('idle'), 2000);
+    }
   };
 
   const handleReset = () => {
@@ -39,34 +80,38 @@ export function FloatingPersonalizationPanel() {
     toast.success('Personalizaciones reiniciadas');
   };
 
+  const resolvePropertyValue = (property: EditableProperty) => {
+    if (!selectedElement) {
+      return property.value;
+    }
+
+    const elementCustomizations = customizations[selectedElement.elementId];
+    if (elementCustomizations && elementCustomizations[property.id] !== undefined) {
+      return elementCustomizations[property.id];
+    }
+
+    return property.value;
+  };
+
   const renderPropertyEditor = (property: EditableProperty) => {
-    const value = property.value;
+    const value = resolvePropertyValue(property);
 
     switch (property.type) {
-      case 'text':
-        return (
-          <Input
-            value={typeof value === 'string' ? value : String(value || '')}
-            onChange={(e) =>
-              updateProperty(selectedElement!.elementId, property.id, e.target.value)
-            }
-            placeholder={property.label}
-          />
-        );
-
-      case 'color':
+      case 'color': {
+        const colorValue = typeof value === 'string' && value.startsWith('#') ? value : '#000000';
+        const textValue = typeof value === 'string' ? value : '';
         return (
           <div className="flex gap-2">
             <Input
               type="color"
-              value={typeof value === 'string' ? value : '#000000'}
+              value={colorValue}
               onChange={(e) =>
                 updateProperty(selectedElement!.elementId, property.id, e.target.value)
               }
               className="w-16 h-10 cursor-pointer"
             />
             <Input
-              value={typeof value === 'string' ? value : '#000000'}
+              value={textValue}
               onChange={(e) =>
                 updateProperty(selectedElement!.elementId, property.id, e.target.value)
               }
@@ -75,6 +120,7 @@ export function FloatingPersonalizationPanel() {
             />
           </div>
         );
+      }
 
       case 'image':
         return (
@@ -121,24 +167,35 @@ export function FloatingPersonalizationPanel() {
           </div>
         );
 
-      case 'select':
+      case 'select': {
+        const options = property.options ?? [];
+        const optionKey = (index: number) => `${property.id}-${index}`;
+        const activeIndex = options.findIndex((option) => option.value === value);
+        const selectValue = activeIndex >= 0 ? optionKey(activeIndex) : '';
+
+        const handleSelectChange = (key: string) => {
+          const selectedIndex = options.findIndex((_, index) => optionKey(index) === key);
+          const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : undefined;
+          const nextValue = (selectedOption?.value ?? key) as PropertyValue;
+
+          updateProperty(selectedElement!.elementId, property.id, nextValue);
+        };
+
         return (
-          <Select
-            value={String(value || '')}
-            onValueChange={(val) => updateProperty(selectedElement!.elementId, property.id, val)}
-          >
+          <Select value={selectValue} onValueChange={handleSelectChange}>
             <SelectTrigger>
               <SelectValue placeholder={property.label} />
             </SelectTrigger>
             <SelectContent>
-              {property.options?.map((option) => (
-                <SelectItem key={String(option.value)} value={String(option.value)}>
+              {options.map((option, index) => (
+                <SelectItem key={optionKey(index)} value={optionKey(index)}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         );
+      }
 
       default:
         return null;
@@ -166,7 +223,12 @@ export function FloatingPersonalizationPanel() {
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed top-20 right-4 z-[100] w-96"
         >
-          <Card className="shadow-2xl border-2">
+          <Card
+            className={cn(
+              'transition-[background,box-shadow,border-color] duration-500',
+              panelToneClasses[saveState]
+            )}
+          >
             {/* Header */}
             <div className="p-4 border-b bg-muted/30">
               <div className="flex items-center justify-between mb-2">
@@ -236,11 +298,42 @@ export function FloatingPersonalizationPanel() {
                   <Trash className="w-4 h-4" />
                   Reiniciar
                 </Button>
-                <Button size="sm" onClick={handleSave} className="flex-1 gap-2">
-                  <FloppyDisk className="w-4 h-4" />
-                  Guardar
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  className="flex-1 gap-2"
+                  disabled={saveState === 'saving'}
+                >
+                  {saveState === 'saving' ? (
+                    <CircleNotch className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FloppyDisk className="w-4 h-4" />
+                  )}
+                  {saveState === 'saving'
+                    ? 'Guardando...'
+                    : saveState === 'success'
+                      ? 'Guardado'
+                      : 'Guardar'}
                 </Button>
               </div>
+              {saveState !== 'idle' && (
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+                  {saveState === 'saving' && (
+                    <CircleNotch className="w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                  {saveState === 'success' && (
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  )}
+                  {saveState === 'error' && (
+                    <WarningCircle className="w-4 h-4 text-destructive" />
+                  )}
+                  <span className="text-muted-foreground">
+                    {saveState === 'saving' && 'Guardando tus personalizaciones...'}
+                    {saveState === 'success' && 'Cambios guardados exitosamente.'}
+                    {saveState === 'error' && 'Ocurrió un error al guardar. Reintenta.'}
+                  </span>
+                </div>
+              )}
             </div>
           </Card>
         </motion.div>

@@ -1,0 +1,34 @@
+{
+  "business": {
+    "name": "Restaurante La Esquina",
+    "category": "food",
+    "description": "Auténtica comida mexicana con ingredientes frescos y recetas tradicionales. Más de 20 años sirviendo a nuestra comunidad.",
+    "address": "Av. Principal 456, Col. Centro, CDMX",
+    "phone": "(555) 123-4567",
+    "hours": "Lun-Dom: 10am-10pm",
+    "email": "contacto@laesquina.mx",
+    "website": "https://www.laesquina.mx"
+  },
+  "branding": {
+    "platformName": "Cupones La Esquina",
+    "primaryColor": "oklch(0.55 0.20 30)",
+    "accentColor": "oklch(0.65 0.18 60)",
+    "primaryColorHex": "#d97706",
+    "accentColorHex": "#c2b280",
+    "backgroundColor": "#fef3c7",
+    "logoUrl": "https://example.com/logo-la-esquina.png",
+    "heroImageUrl": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&h=600&fit=crop",
+    "tagline": "Sabores auténticos, ofertas especiales todos los días",
+    "primaryButtonLabel": "Ver Promociones",
+    "secondaryButtonLabel": "Explorar Menú",
+    "borderRadius": 16,
+    "spacing": 6,
+    "fontSize": 16,
+    "businessId": "partner-123"
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "exportedAt": "2024-11-28T15:50:00.000Z",
+    "businessId": "partner-123"
+  }
+}

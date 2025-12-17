@@ -1,5 +1,4 @@
 export type EditablePropertyType =
-  | 'text'
   | 'color'
   | 'image'
   | 'number'

@@ -34,3 +34,8 @@ pids
 .devcontainer/
 
 .spark-workbench-id
+*.tsbuildinfo
+
+# User personalization data (keep structure files only)
+/data/*.json
+!/data/.gitkeep

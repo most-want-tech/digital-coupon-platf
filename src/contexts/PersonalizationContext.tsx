@@ -128,17 +128,35 @@ const PersonalizationContext = createContext<PersonalizationContextType | null>(
 export function PersonalizationProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(personalizationReducer, initialState);
 
-  // Load customizations from localStorage on mount
+  // Load customizations from server on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const customizations = JSON.parse(saved);
-        dispatch({ type: 'LOAD_CUSTOMIZATIONS', payload: customizations });
+    async function loadCustomizations() {
+      try {
+        const response = await fetch('/api/personalizations');
+        if (response.ok) {
+          const data = await response.json();
+          dispatch({ type: 'LOAD_CUSTOMIZATIONS', payload: data.customizations });
+        } else {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const customizations = JSON.parse(saved);
+            dispatch({ type: 'LOAD_CUSTOMIZATIONS', payload: customizations });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load customizations from server:', error);
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const customizations = JSON.parse(saved);
+            dispatch({ type: 'LOAD_CUSTOMIZATIONS', payload: customizations });
+          }
+        } catch (localError) {
+          console.error('Failed to load customizations from localStorage:', localError);
+        }
       }
-    } catch (error) {
-      console.error('Failed to load customizations:', error);
     }
+    loadCustomizations();
   }, []);
 
   const setEditMode = useCallback((enabled: boolean) => {
@@ -161,20 +179,41 @@ export function PersonalizationProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REDO' });
   }, []);
 
-  const reset = useCallback(() => {
+  const reset = useCallback(async () => {
     dispatch({ type: 'RESET' });
     try {
+      await fetch('/api/personalizations', { method: 'DELETE' });
       localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
-      console.error('Failed to clear customizations:', error);
+      console.error('Failed to clear customizations from server:', error);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (localError) {
+        console.error('Failed to clear customizations from localStorage:', localError);
+      }
     }
   }, []);
 
-  const saveCustomizations = useCallback(() => {
+  const saveCustomizations = useCallback(async () => {
     try {
+      const response = await fetch('/api/personalizations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customizations: state.customizations })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Server save failed');
+      }
+      
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state.customizations));
     } catch (error) {
-      console.error('Failed to save customizations:', error);
+      console.error('Failed to save customizations to server:', error);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.customizations));
+      } catch (localError) {
+        console.error('Failed to save customizations to localStorage:', localError);
+      }
     }
   }, [state.customizations]);
 

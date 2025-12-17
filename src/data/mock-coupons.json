@@ -1,0 +1,238 @@
+{
+  "api_usage": {
+    "api_public": "PUBLIC-d6fee5badbc6667e",
+    "owner_id": 1427,
+    "contador_prev": 1500,
+    "contador": 234,
+    "note": "Datos de demostración para desarrollo local"
+  },
+  "stats": {
+    "records": 5,
+    "data_bytes": 15360,
+    "data_kb": 15.0,
+    "totals": {
+      "usado": 145,
+      "scan": 523,
+      "vistosx": 2340,
+      "mg": 89,
+      "comentarios": 12
+    },
+    "averages": {
+      "usado": 29.0,
+      "scan": 104.6,
+      "vistosx": 468.0,
+      "mg": 17.8,
+      "comentarios": 2.4
+    },
+    "by_tipo": {
+      "digital": 5
+    },
+    "by_status": {
+      "1": 5
+    },
+    "dates": {
+      "min_fecha_inicio": "2024-01-15",
+      "max_fecha_final": "2025-12-31",
+      "min_fecha_create": "2024-01-10",
+      "max_fecha_create": "2024-11-20"
+    },
+    "top": {
+      "most_used": {
+        "id": 1001,
+        "titulo": "50% de descuento en toda la tienda",
+        "usado": 87,
+        "scan": 234,
+        "vistosx": 890,
+        "mg": 45
+      },
+      "least_used": {
+        "id": 1005,
+        "titulo": "Envío gratis en compras mayores a $500",
+        "usado": 12,
+        "scan": 45,
+        "vistosx": 123,
+        "mg": 5
+      },
+      "most_scanned": {
+        "id": 1001,
+        "titulo": "50% de descuento en toda la tienda",
+        "usado": 87,
+        "scan": 234,
+        "vistosx": 890,
+        "mg": 45
+      },
+      "least_scanned": {
+        "id": 1005,
+        "titulo": "Envío gratis en compras mayores a $500",
+        "usado": 12,
+        "scan": 45,
+        "vistosx": 123,
+        "mg": 5
+      },
+      "most_viewed": {
+        "id": 1001,
+        "titulo": "50% de descuento en toda la tienda",
+        "usado": 87,
+        "scan": 234,
+        "vistosx": 890,
+        "mg": 45
+      },
+      "least_viewed": {
+        "id": 1005,
+        "titulo": "Envío gratis en compras mayores a $500",
+        "usado": 12,
+        "scan": 45,
+        "vistosx": 123,
+        "mg": 5
+      },
+      "most_mg": {
+        "id": 1001,
+        "titulo": "50% de descuento en toda la tienda",
+        "usado": 87,
+        "scan": 234,
+        "vistosx": 890,
+        "mg": 45
+      },
+      "least_mg": {
+        "id": 1005,
+        "titulo": "Envío gratis en compras mayores a $500",
+        "usado": 12,
+        "scan": 45,
+        "vistosx": 123,
+        "mg": 5
+      }
+    }
+  },
+  "cupones": [
+    {
+      "id": 1001,
+      "titulo": "50% de descuento en toda la tienda",
+      "condiciones": "Válido en compras mayores a $300. No acumulable con otras promociones.",
+      "fecha_inicio": "2024-01-15",
+      "fecha_final": "2025-06-30",
+      "tipo": "digital",
+      "usado": 87,
+      "status": 1,
+      "id_empresa": 101,
+      "id_partner": 1427,
+      "foto": "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=600&fit=crop",
+      "fecha_create": "2024-01-10",
+      "mg": 45,
+      "comentarios": 8,
+      "descripcion": "Aprovecha nuestra gran promoción de mitad de precio en todos los productos de la tienda. Oferta por tiempo limitado.",
+      "vistosx": 890,
+      "scan": 234,
+      "url_tienda": "https://example.com/store",
+      "text": "50% OFF",
+      "fecha": "2024-01-10",
+      "hora": 10,
+      "link": "https://example.com/coupon/1001",
+      "foto_post": "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=800&fit=crop",
+      "code": "SAVE50"
+    },
+    {
+      "id": 1002,
+      "titulo": "2x1 en bebidas seleccionadas",
+      "condiciones": "Válido de lunes a viernes. Aplica solo en bebidas calientes.",
+      "fecha_inicio": "2024-03-01",
+      "fecha_final": "2025-12-31",
+      "tipo": "digital",
+      "usado": 23,
+      "status": 1,
+      "id_empresa": 102,
+      "id_partner": 1427,
+      "foto": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&h=600&fit=crop",
+      "fecha_create": "2024-02-25",
+      "mg": 12,
+      "comentarios": 2,
+      "descripcion": "Disfruta de dos bebidas por el precio de una. Perfecta para compartir con amigos o disfrutar durante toda la semana.",
+      "vistosx": 456,
+      "scan": 89,
+      "url_tienda": "https://example.com/cafe",
+      "text": "2x1",
+      "fecha": "2024-02-25",
+      "hora": 8,
+      "link": "https://example.com/coupon/1002",
+      "foto_post": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&h=800&fit=crop",
+      "code": "DRINK2X1"
+    },
+    {
+      "id": 1003,
+      "titulo": "20% de descuento en servicios de spa",
+      "condiciones": "Reserva con 48 horas de anticipación. Válido de lunes a jueves.",
+      "fecha_inicio": "2024-05-01",
+      "fecha_final": "2025-08-31",
+      "tipo": "digital",
+      "usado": 15,
+      "status": 1,
+      "id_empresa": 103,
+      "id_partner": 1427,
+      "foto": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop",
+      "fecha_create": "2024-04-20",
+      "mg": 18,
+      "comentarios": 1,
+      "descripcion": "Relájate y renuévate con un 20% de descuento en todos nuestros servicios de spa. Incluye masajes, faciales y tratamientos corporales.",
+      "vistosx": 567,
+      "scan": 123,
+      "url_tienda": "https://example.com/spa",
+      "text": "20% OFF",
+      "fecha": "2024-04-20",
+      "hora": 14,
+      "link": "https://example.com/coupon/1003",
+      "foto_post": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=800&fit=crop",
+      "code": "SPA20"
+    },
+    {
+      "id": 1004,
+      "titulo": "Descuento del 30% en ropa de temporada",
+      "condiciones": "Aplica en productos seleccionados de la colección actual. No incluye accesorios.",
+      "fecha_inicio": "2024-06-15",
+      "fecha_final": "2025-09-30",
+      "tipo": "digital",
+      "usado": 8,
+      "status": 1,
+      "id_empresa": 104,
+      "id_partner": 1427,
+      "foto": "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=600&fit=crop",
+      "fecha_create": "2024-06-10",
+      "mg": 9,
+      "comentarios": 1,
+      "descripcion": "Renueva tu guardarropa con las últimas tendencias. 30% de descuento en nuestra colección de temporada.",
+      "vistosx": 304,
+      "scan": 67,
+      "url_tienda": "https://example.com/fashion",
+      "text": "30% OFF",
+      "fecha": "2024-06-10",
+      "hora": 11,
+      "link": "https://example.com/coupon/1004",
+      "foto_post": "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&h=800&fit=crop",
+      "code": "FASHION30"
+    },
+    {
+      "id": 1005,
+      "titulo": "Envío gratis en compras mayores a $500",
+      "condiciones": "Válido para todo el país. Compra mínima de $500.",
+      "fecha_inicio": "2024-08-01",
+      "fecha_final": "2025-12-31",
+      "tipo": "digital",
+      "usado": 12,
+      "status": 1,
+      "id_empresa": 105,
+      "id_partner": 1427,
+      "foto": "https://images.unsplash.com/photo-1558769132-cb1aea3c8e8d?w=800&h=600&fit=crop",
+      "fecha_create": "2024-07-25",
+      "mg": 5,
+      "comentarios": 0,
+      "descripcion": "Disfruta de envío gratuito en todas tus compras superiores a $500. Cobertura nacional garantizada.",
+      "vistosx": 123,
+      "scan": 45,
+      "url_tienda": "https://example.com/shop",
+      "text": "ENVÍO GRATIS",
+      "fecha": "2024-07-25",
+      "hora": 16,
+      "link": "https://example.com/coupon/1005",
+      "foto_post": "https://images.unsplash.com/photo-1558769132-cb1aea3c8e8d?w=1200&h=800&fit=crop",
+      "code": "FREESHIP500"
+    }
+  ]
+}
